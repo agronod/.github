@@ -1,0 +1,39 @@
+name: Scanning and check image
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: "The URL of the container image to be scanned and checked."
+        required: true
+        type: string
+      rhacs-central-endpoint:
+        description: "The endpoint URL of the RHACS Central server for authentication."
+        type: string
+        required: true
+
+jobs:
+  scan-and-check-image:
+    name: Scanning and check image
+    runs-on: self-hosted
+    steps:
+      - name: Login to Central
+        uses: stackrox/central-login@v1
+        with:
+          endpoint: ${{ inputs.rhacs-central-endpoint }}
+
+      - name: Install roxctl from Central
+        uses: stackrox/roxctl-installer-action@01986cbb13746f478ee661d54f84e62940980fed
+        with:
+          central-endpoint: https://${{ env.ROX_ENDPOINT }}
+          central-token: ${{ env.ROX_API_TOKEN }}
+
+      - name: Scan image with roxctl
+        shell: bash
+        run: |
+          roxctl image scan --output=table --image="${{ inputs.image }}"
+
+      - name: Check image with roxctl
+        shell: bash
+        run: |
+          roxctl image check --output=table --image="${{ inputs.image }}"
