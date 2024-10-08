@@ -1,0 +1,67 @@
+name: Next version
+on:
+  workflow_call:
+    outputs:
+      version:
+        description: Next version
+        value: ${{ jobs.next-version.outputs.version }}
+      tag:
+        description: Next tag
+        value: ${{ jobs.next-version.outputs.tag }}
+      changelog:
+        description: Changelog
+        value: ${{ jobs.next-version.outputs.changelog }}
+    secrets:
+      github-token:
+        description: "Github token to be able to build inside the container"
+        required: true
+
+jobs:
+  next-version:
+    name: Get Next Version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code for pull request
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+          token: ${{ secrets.github-token }}
+
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "DRY_RUN=true" >> $GITHUB_ENV
+          fi
+
+      - name: Identify new semver version
+        uses: mathieudutour/github-tag-action@v6.2
+        id: tag_version
+        with:
+          fetch_all_tags: true
+          github_token: ${{ secrets.github-token }}
+          dry_run: ${{ env.DRY_RUN }}
+
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            NEW_TAG="${{ steps.tag_version.outputs.new_tag }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
+            NEW_VERSION="${{ steps.tag_version.outputs.new_version }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
+          else
+            NEW_TAG="${{ steps.tag_version.outputs.new_tag }}"
+            NEW_VERSION="${{ steps.tag_version.outputs.new_version }}"
+          fi
+
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Show tag and version
+        run: |
+          echo "Tag: ${{ env.NEW_TAG }}"
+          echo "Version: ${{ env.NEW_VERSION }}"
+
+    outputs:
+      tag: ${{ env.NEW_TAG }}
+      version: ${{ env.NEW_VERSION }}
+      changelog: ${{ steps.tag_version.outputs.changelog }}
