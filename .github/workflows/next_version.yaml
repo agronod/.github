@@ -29,8 +29,8 @@ jobs:
       - name: Set environment variables
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            GITHUB_SHA="${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
-            echo "GITHUB_SHA=$GITHUB_SHA" >> $GITHUB_ENV
+            APPEND_TO_PRE_RELEASE_TAG="<branch>-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
+            echo "APPEND_TO_PRE_RELEASE_TAG=$APPEND_TO_PRE_RELEASE_TAG" >> $GITHUB_ENV
             echo "DRY_RUN=true" >> $GITHUB_ENV
           fi
 
@@ -41,6 +41,7 @@ jobs:
           fetch_all_tags: true
           github_token: ${{ secrets.github-token }}
           dry_run: ${{ env.DRY_RUN }}
+          append_to_pre_release_tag: ${{ env.APPEND_TO_PRE_RELEASE_TAG }}
 
       - name: Show tag and version
         run: |
