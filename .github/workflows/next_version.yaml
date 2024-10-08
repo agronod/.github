@@ -25,8 +25,8 @@ jobs:
       - name: Set repository name as an environment variable
         id: set_tag_name
         run: |
-          echo "NEW_TAG=${steps.tag_version.outputs.new_tag}" >> $GITHUB_ENV
-          echo "NEW_VERSION=${steps.tag_version.outputs.new_version}" >> $GITHUB_ENV
+          echo "NEW_TAG=${{steps.tag_version.outputs.new_tag}}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${{steps.tag_version.outputs.new_version}}" >> $GITHUB_ENV
 
       - name: Pull request
         if: github.event_name == 'pull_request'
