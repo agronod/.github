@@ -29,18 +29,8 @@ jobs:
         if: github.event_name != 'pull_request'
         id: set_tag_version
         run: |
-          echo "::set-output name=tag::${{ steps.tag_version.outputs.new_tag }}"
-          echo "::set-output name=version::${{ steps.tag_version.outputs.new_version }}"
-
-      - name: Show tag
-        if: github.event_name != 'pull_request'
-        run: |
-          echo "${{ steps.set_tag_version.outputs.tag }}"
-
-      - name: Show version
-        if: github.event_name != 'pull_request'
-        run: |
-          echo "${{ steps.set_tag_version.outputs.version }}"
+          echo "tag=${{ steps.tag_version.outputs.new_tag }}" >> $GITHUB_OUTPUT
+          echo "version=${{ steps.tag_version.outputs.new_version }}" >> $GITHUB_OUTPUT
 
       - name: Checkout
         if: github.event_name == 'pull_request'
@@ -53,15 +43,10 @@ jobs:
         if: github.event_name == 'pull_request'
         id: set_tag_version_pr
         run: |
-          echo "::set-output name=tag::${{ steps.tag_version.outputs.new_tag }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
-          echo "::set-output name=version::${{ steps.tag_version.outputs.new_version }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
+          echo "tag=${{ steps.tag_version.outputs.new_tag }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
+          echo "version=${{ steps.tag_version.outputs.new_version }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
 
-      - name: Show tag
-        if: github.event_name == 'pull_request'
+      - name: Show tag and version
         run: |
-          echo "${{ steps.set_tag_version_pr.outputs.tag }}"
-
-      - name: Show version
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "${{ steps.set_tag_version_pr.outputs.version }}"
+          echo "Tag: ${{ steps.set_tag_version_pr.outputs.tag || steps.set_tag_version.outputs.tag }}"
+          echo "Version: ${{ steps.set_tag_version_pr.outputs.version || steps.set_tag_version.outputs.version }}"
