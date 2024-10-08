@@ -12,47 +12,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # This is due to 'detached HEAD' issue
-      - name: Checkout
-        uses: actions/checkout@v3
-        if: github.event_name == 'pull_request'
+      - name: Identify new semver version
+        uses: mathieudutour/github-tag-action@v6.0
+        id: tag_version
         with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref }}
-
-      - name: Checkout
-        uses: actions/checkout@v3
-        if: github.event_name == 'push'
-        with:
-          fetch-depth: 0
-
-      - name: Semver - Get Release Type
-        id: get_release_type
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "::set-output name=type::$(.github/scripts/pr_info.sh release_type)"
-
-      - name: Get Pull Request Number
-        id: get_pull_request
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "::set-output name=pull_request_number::$(.github/scripts/pr_info.sh)"
+          github_token: ${{ secrets.github-token }}
 
       - name: Set repository name as an environment variable
-        id: set_repository_name
-        run: echo "REPOSITORY_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-
-      - name: Semver - Get next next version bump
-        id: next-version
+        id: set_tag_name
         run: |
-          echo ::set-output name=version::$(.github/scripts/next_semver.sh \
-          {{ env.REPOSITORY_NAME }} \
-          '${{ steps.get_pull_request.outputs.pull_request_number }}' \
-          '${{ steps.get_release_type.outputs.type }}' \
-          '0.0.0')
+          echo "NEW_TAG=${steps.tag_version.outputs.new_tag}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${steps.tag_version.outputs.new_version}" >> $GITHUB_ENV
+
+      - name: Pull request
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "NEW_TAG=${NEW_TAG}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+          echo "NEW_VERSION=${NEW_VERSION}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+
+      - name: Show tag
+        run: |
+          echo "${NEW_TAG}"
 
       - name: Show version
         run: |
-          echo "${{ steps.next-version.outputs.version }}"
+          echo "${NEW_VERSION}"
+
     outputs:
-      version: ${{ steps.next-version.outputs.version }}
+      tag: ${NEW_TAG}
+      version: ${NEW_VERSION}
