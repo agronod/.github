@@ -25,17 +25,17 @@ jobs:
         with:
           github_token: ${{ secrets.github-token }}
 
-      - name: Set repository name as an environment variable
-        id: set_tag_name
+      - name: Output version
+        if: github.event_name != 'pull_request'
         run: |
-          echo "NEW_TAG=${{steps.tag_version.outputs.new_tag}}" >> $GITHUB_ENV
-          echo "NEW_VERSION=${{steps.tag_version.outputs.new_version}}" >> $GITHUB_ENV
+          echo "NEW_TAG=${{steps.tag_version.outputs.new_tag}}" >> $GITHUB_OUTPUT
+          echo "NEW_VERSION=${{steps.tag_version.outputs.new_version}}" >> $GITHUB_OUTPUT
 
-      - name: Pull request
+      - name: Output pr-version
         if: github.event_name == 'pull_request'
         run: |
-          echo "NEW_TAG=$NEW_TAG-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
-          echo "NEW_VERSION=$NEW_VERSION-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+          echo "NEW_TAG=${{steps.tag_version.outputs.new_tag}}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
+          echo "NEW_VERSION=${{steps.tag_version.outputs.new_version}}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
 
       - name: Show tag
         run: |
@@ -44,7 +44,3 @@ jobs:
       - name: Show version
         run: |
           echo "${NEW_VERSION}"
-
-    outputs:
-      tag: $NEW_TAG # Format is v1.0.0
-      version: $NEW_VERSION # Format is 1.0.0
