@@ -70,7 +70,7 @@ jobs:
       image: ${{ needs.build-and-push-image.outputs.image }}
 
   create-release:
-    needs: "scan-and-check-image"
+    needs: ["scan-and-check-image", "next-version"]
     if: github.event_name != 'pull_request'
     uses: ./.github/workflows/create-release.yml
     with:
@@ -79,7 +79,7 @@ jobs:
       changelog: ${{ needs.next-version.outputs.changelog }}
 
   promote-application:
-    needs: "create-release"
+    needs: ["create-release", "build-and-push-image"]
     if: github.event_name != 'pull_request'
     uses: ./.github/workflows/promote-application.yml
     with:
