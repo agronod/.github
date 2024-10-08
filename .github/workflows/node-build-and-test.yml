@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       node-version:
-        default: '18.15.0'
+        default: "20.15.0"
         type: string
     secrets:
       github-token:
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          submodules: 'true'
+          submodules: "true"
 
       - name: Set up Node.js
         uses: actions/setup-node@v2

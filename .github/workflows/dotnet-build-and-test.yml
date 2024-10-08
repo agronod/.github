@@ -1,0 +1,39 @@
+name: Test Nestjs application
+
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        required: true
+        type: string
+    secrets:
+      github-user:
+        required: true
+      github-token:
+        required: true
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Restore
+        run: |
+          dotnet restore
+        env:
+          GITHUB_USERNAME: ${{ secrets.github-user }}
+          GITHUB_TOKEN: ${{ secrets.github-token }}
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal --filter Category!=Integration

@@ -1,0 +1,64 @@
+name: Promote Agronod application
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      application-name:
+        required: true
+        type: string
+      application-folder:
+        required: true
+        type: string
+    secrets:
+      token:
+        required: true
+
+jobs:
+  promote:
+    name: Promote
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          repository: agronod/application-gitops
+          branch: main
+          token: ${{ secrets.token }}
+
+      - name: Promote to dev
+        if: ${{ github.ref == 'refs/heads/develop' }}
+        uses: rmeneely/update-yaml@v1
+        with:
+          infile: dev-ocp/dev/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.version }}"
+
+      - name: Promote to test
+        if: ${{ github.ref == 'refs/heads/release' }}
+        uses: rmeneely/update-yaml@v1
+        with:
+          infile: dev-ocp/test/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.version }}"
+
+      - name: Promote to staging
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: rmeneely/update-yaml@v1
+        with:
+          infile: prod-ocp/staging/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.version }}"
+
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "Bump ${{ inputs.application-name }}:${{ inputs.version }}"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          repository: agronod/application-gitops
+          github_token: ${{ secrets.token }}
+          branch: main
