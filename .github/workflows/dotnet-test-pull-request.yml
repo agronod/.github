@@ -36,6 +36,8 @@ jobs:
   next-version:
     needs: "build-and-test"
     uses: ./.github/workflows/next_version.yaml
+    secrets:
+      github-token: ${{ secrets.github-token }}
 
   build-and-push-image:
     needs: "next-version"

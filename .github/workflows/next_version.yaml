@@ -5,6 +5,10 @@ on:
       version:
         description: Next version
         value: ${{ jobs.next-version.outputs.version }}
+    secrets:
+      github-token:
+        description: "Github token to be able to build inside the container"
+        required: true
 
 jobs:
   next-version:
