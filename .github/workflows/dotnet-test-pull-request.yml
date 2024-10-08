@@ -51,7 +51,7 @@ jobs:
 
   scan-and-check-image:
     needs: "build-and-push-image"
-    uses: ./.github/workflows/scan-and-check-image.yml@feature/workflows
+    uses: ./.github/workflows/scan-and-check-image.yml
     permissions:
       id-token: write
     with:
