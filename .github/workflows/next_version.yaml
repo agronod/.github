@@ -34,8 +34,8 @@ jobs:
       - name: Pull request
         if: github.event_name == 'pull_request'
         run: |
-          echo "NEW_TAG=${NEW_TAG}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
-          echo "NEW_VERSION=${NEW_VERSION}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+          echo "NEW_TAG=$NEW_TAG-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+          echo "NEW_VERSION=$NEW_VERSION-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
 
       - name: Show tag
         run: |
@@ -46,5 +46,5 @@ jobs:
           echo "${NEW_VERSION}"
 
     outputs:
-      tag: ${NEW_TAG} # Format is v1.0.0
-      version: ${NEW_VERSION} # Format is 1.0.0
+      tag: $NEW_TAG # Format is v1.0.0
+      version: $NEW_VERSION # Format is 1.0.0
