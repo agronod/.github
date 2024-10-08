@@ -3,7 +3,7 @@ name: Promote Agronod application
 on:
   workflow_call:
     inputs:
-      version:
+      tag:
         required: true
         type: string
       application-name:
@@ -13,7 +13,7 @@ on:
         required: true
         type: string
     secrets:
-      token:
+      github-token:
         required: true
 
 jobs:
@@ -27,38 +27,38 @@ jobs:
         with:
           repository: agronod/application-gitops
           branch: main
-          token: ${{ secrets.token }}
+          token: ${{ secrets.github-token }}
 
       - name: Promote to dev
         if: ${{ github.ref == 'refs/heads/develop' }}
         uses: rmeneely/update-yaml@v1
         with:
           infile: dev-ocp/dev/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
-          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.version }}"
+          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.tag }}"
 
       - name: Promote to test
         if: ${{ github.ref == 'refs/heads/release' }}
         uses: rmeneely/update-yaml@v1
         with:
           infile: dev-ocp/test/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
-          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.version }}"
+          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.tag }}"
 
       - name: Promote to staging
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: rmeneely/update-yaml@v1
         with:
           infile: prod-ocp/staging/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
-          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.version }}"
+          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.tag }}"
 
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Bump ${{ inputs.application-name }}:${{ inputs.version }}"
+          git commit -am "Bump ${{ inputs.application-name }}:${{ inputs.tag }}"
 
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
           repository: agronod/application-gitops
-          github_token: ${{ secrets.token }}
+          github_token: ${{ secrets.github-token }}
           branch: main
