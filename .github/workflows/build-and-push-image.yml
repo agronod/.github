@@ -30,9 +30,6 @@ on:
       registry-password:
         description: "The password for the container registry"
         required: true
-      github-token:
-        description: "Github token to be able to build inside the container"
-        required: true
       container-build-args:
         description: "Container build args"
         required: false
