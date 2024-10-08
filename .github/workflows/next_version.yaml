@@ -1,13 +1,6 @@
 name: Next version
 on:
   workflow_call:
-    inputs:
-      release_branches:
-        default: "master,main"
-        type: string
-      pre_release_branches:
-        default: "develop,release"
-        type: string
     outputs:
       version:
         description: Next version
@@ -38,6 +31,7 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             GITHUB_SHA="${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
             echo "GITHUB_SHA=$GITHUB_SHA" >> $GITHUB_ENV
+            echo "DRY_RUN=true" >> $GITHUB_ENV
           fi
 
       - name: Identify new semver version
@@ -46,9 +40,8 @@ jobs:
         with:
           fetch_all_tags: true
           commit_sha: ${{ env.GITHUB_SHA }}
-          release_branches: ${{ inputs.release_branches }}
-          pre_release_branches: ${{ inputs.pre_release_branches }}
           github_token: ${{ secrets.github-token }}
+          dry_run: ${{ env.DRY_RUN }}
 
       - name: Show tag and version
         run: |
