@@ -23,6 +23,9 @@ on:
       registry-password:
         description: "The password for the container registry"
         required: true
+      container-build-args:
+        description: "Container build args"
+        required: false
 
 jobs:
   # build-and-test:
@@ -49,7 +52,7 @@ jobs:
     secrets:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
-      github-token: ${{ secrets.github-token }}
+      container-build-args: ${{ secrets.container-build-args }}
 
   scan-and-check-image:
     needs: "build-and-push-image"

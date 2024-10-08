@@ -33,6 +33,9 @@ on:
       github-token:
         description: "Github token to be able to build inside the container"
         required: true
+      container-build-args:
+        description: "Container build args"
+        required: false
 
 jobs:
   build-and-push-image:
@@ -66,8 +69,7 @@ jobs:
           context: .
           push: ${{ inputs.push }}
           tags: ${{ steps.set-image.outputs.image }}
-          build-args: |
-            GITHUB_TOKEN=${{ secrets.github-token }}
+          build-args: ${{ secrets.container-build-args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
