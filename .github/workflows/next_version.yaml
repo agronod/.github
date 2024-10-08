@@ -39,7 +39,6 @@ jobs:
         id: tag_version
         with:
           fetch_all_tags: true
-          commit_sha: ${{ env.GITHUB_SHA }}
           github_token: ${{ secrets.github-token }}
           dry_run: ${{ env.DRY_RUN }}
 
