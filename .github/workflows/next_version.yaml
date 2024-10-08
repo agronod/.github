@@ -5,6 +5,9 @@ on:
       version:
         description: Next version
         value: ${{ jobs.next-version.outputs.version }}
+      tag:
+        description: Next tag
+        value: ${{ jobs.next-version.outputs.tag }}
     secrets:
       github-token:
         description: "Github token to be able to build inside the container"
@@ -43,5 +46,5 @@ jobs:
           echo "${NEW_VERSION}"
 
     outputs:
-      tag: ${NEW_TAG}
-      version: ${NEW_VERSION}
+      tag: ${NEW_TAG} # Format is v1.0.0
+      version: ${NEW_VERSION} # Format is 1.0.0
