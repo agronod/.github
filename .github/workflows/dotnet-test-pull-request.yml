@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/next_version.yaml
 
   build-and-push-image:
-    needs: "build-and-test"
+    needs: "next-version"
     uses: ./.github/workflows/build-and-push-image.yml
     with:
       registry-url: "quay.io"
