@@ -23,6 +23,8 @@ on:
       image:
         description: "The output representing the built image"
         value: ${{ jobs.build-and-push-image.outputs.image }}
+      tag:
+        description: "The output representing the tag of the built image"
     secrets:
       registry-username:
         description: "The username for the container registry"
@@ -72,3 +74,4 @@ jobs:
 
     outputs:
       image: ${{ steps.set-image.outputs.image }}
+      tag: ${{ inputs.tag }}
