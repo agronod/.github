@@ -25,22 +25,30 @@ jobs:
         with:
           github_token: ${{ secrets.github-token }}
 
-      - name: Output version
-        if: github.event_name != 'pull_request'
+      - name: Set outputs for tag and version
+        id: set_tag_version
         run: |
-          echo "NEW_TAG=${{steps.tag_version.outputs.new_tag}}" >> $GITHUB_OUTPUT
-          echo "NEW_VERSION=${{steps.tag_version.outputs.new_version}}" >> $GITHUB_OUTPUT
+          echo "NEW_TAG=${{ steps.tag_version.outputs.new_tag }}"
+          echo "NEW_VERSION=${{ steps.tag_version.outputs.new_version }}"
+          echo "::set-output name=tag::${{ steps.tag_version.outputs.new_tag }}"
+          echo "::set-output name=version::${{ steps.tag_version.outputs.new_version }}"
 
-      - name: Output pr-version
+      - name: Modify tag and version for pull request
         if: github.event_name == 'pull_request'
         run: |
-          echo "NEW_TAG=${{steps.tag_version.outputs.new_tag}}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
-          echo "NEW_VERSION=${{steps.tag_version.outputs.new_version}}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
+          NEW_TAG="${{ steps.tag_version.outputs.new_tag }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
+          NEW_VERSION="${{ steps.tag_version.outputs.new_version }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
+          echo "::set-output name=tag::${NEW_TAG}"
+          echo "::set-output name=version::${NEW_VERSION}"
 
       - name: Show tag
         run: |
-          echo "${NEW_TAG}"
+          echo "${{ steps.set_tag_version.outputs.tag }}"
 
       - name: Show version
         run: |
-          echo "${NEW_VERSION}"
+          echo "${{ steps.set_tag_version.outputs.version }}"
+
+    outputs:
+      tag: ${{ steps.set_tag_version.outputs.tag }}
+      version: ${{ steps.set_tag_version.outputs.version }}
