@@ -35,6 +35,7 @@ jobs:
     uses: ./.github/workflows/dotnet-test.yml
     with:
       dotnet-version: ${{ inputs.dotnet-version }}
+      test-filter: ${{ inputs.test-filter }}
     secrets:
       github-user: ${{ secrets.github-user }}
       github-token: ${{ secrets.github-token }}
