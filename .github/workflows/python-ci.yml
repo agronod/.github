@@ -10,11 +10,14 @@ on:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
         required: true
+      promote:
+        default: true
+        type: string
       application-name:
-        required: true
+        required: false
         type: string
       application-folder:
-        required: true
+        required: false
         type: string
     secrets:
       github-user:
@@ -32,6 +35,11 @@ on:
       container-build-args:
         description: "Container build args"
         required: false
+    outputs:
+      version: ${{ steps.next-version.outputs.version }}
+      tag: ${{ steps.next-version.outputs.tag }}
+      changelog: ${{ steps.next-version.outputs.changelog }}
+      image: ${{ steps.build-and-push-image.outputs.image }}
 
 jobs:
   test:
@@ -78,6 +86,7 @@ jobs:
       changelog: ${{ needs.next-version.outputs.changelog }}
 
   promote-application:
+    if: ${{ inputs.promote == 'true' }}
     needs: ["create-release", "build-and-push-image"]
     uses: ./.github/workflows/promote-application.yml
     with:
