@@ -1,6 +1,11 @@
 name: Next version
 on:
   workflow_call:
+    inputs:
+      is-pull-request:
+        description: "Flag to determine if the version is for a pull request"
+        default: false
+        type: boolean
     outputs:
       version:
         description: Next version
@@ -23,17 +28,11 @@ jobs:
 
     steps:
       - name: Checkout code for pull request
-        if: github.event_name == 'pull_request'
+        if: ${{ inputs.is-pull-request }}
         uses: actions/checkout@v2
         with:
           submodules: "true"
           token: ${{ secrets.github-token }}
-
-      - name: Set environment variables
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "DRY_RUN=true" >> $GITHUB_ENV
-          fi
 
       - name: Identify new semver version
         uses: mathieudutour/github-tag-action@v6.2
@@ -41,11 +40,11 @@ jobs:
         with:
           fetch_all_tags: true
           github_token: ${{ secrets.github-token }}
-          dry_run: ${{ env.DRY_RUN }}
+          dry_run: ${{ inputs.is-pull-request }}
 
       - name: Set environment variables
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
+          if [ "${{ inputs.is-pull-request }}" = "true" ]; then
             NEW_TAG="${{ steps.tag_version.outputs.new_tag }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
             NEW_VERSION="${{ steps.tag_version.outputs.new_version }}-${{ github.event.number }}-$(git rev-parse --short $GITHUB_SHA)"
           else
