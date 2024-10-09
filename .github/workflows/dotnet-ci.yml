@@ -16,6 +16,9 @@ on:
       application-folder:
         required: true
         type: string
+      test-filter:
+        default: "Category!=e2e"
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"

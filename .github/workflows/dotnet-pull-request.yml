@@ -10,6 +10,9 @@ on:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
         required: true
+      test-filter:
+        default: "Category!=e2e"
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"
