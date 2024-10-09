@@ -13,6 +13,9 @@ on:
       promote:
         default: true
         type: string
+      test:
+        default: true
+        type: string
       application-name:
         required: false
         type: string
@@ -43,6 +46,7 @@ on:
 
 jobs:
   test:
+    if: ${{ inputs.test == 'true' }}
     uses: ./.github/workflows/python-test.yml
     with:
       python-version: ${{ inputs.python-version }}
@@ -51,7 +55,7 @@ jobs:
       github-token: ${{ secrets.github-token }}
 
   next-version:
-    needs: "test"
+    if: ${{ inputs.test == 'false' || (inputs.test == 'true' && success()) }}
     uses: ./.github/workflows/next-version.yaml
     secrets:
       github-token: ${{ secrets.github-token }}
