@@ -33,7 +33,6 @@ jobs:
     with:
       node-version: ${{ inputs.node-version }}
     secrets:
-      github-user: ${{ secrets.github-user }}
       github-token: ${{ secrets.github-token }}
 
   next-version:
