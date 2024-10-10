@@ -12,10 +12,10 @@ on:
         required: true
       promote:
         default: true
-        type: string
+        type: boolean
       test:
         default: true
-        type: string
+        type: boolean
       application-name:
         required: false
         type: string
@@ -46,7 +46,7 @@ on:
 
 jobs:
   test:
-    if: ${{ inputs.test == 'true' }}
+    if: ${{ inputs.test }}
     uses: ./.github/workflows/python-test.yml
     with:
       python-version: ${{ inputs.python-version }}
@@ -55,7 +55,7 @@ jobs:
       github-token: ${{ secrets.github-token }}
 
   next-version:
-    if: ${{ inputs.test == 'false' || (inputs.test == 'true' && success()) }}
+    if: ${{ !inputs.test || (inputs.test && success()) }}
     uses: ./.github/workflows/next-version.yaml
     secrets:
       github-token: ${{ secrets.github-token }}
@@ -90,7 +90,7 @@ jobs:
       changelog: ${{ needs.next-version.outputs.changelog }}
 
   promote-application:
-    if: ${{ inputs.promote == 'true' }}
+    if: ${{ inputs.promote }}
     needs: ["create-release", "build-and-push-image"]
     uses: ./.github/workflows/promote-application.yml
     with:

@@ -12,7 +12,7 @@ on:
         required: true
       test:
         default: true
-        type: string
+        type: boolean
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -32,7 +32,7 @@ on:
 
 jobs:
   test:
-    if: ${{ inputs.test == 'true' }}
+    if: ${{ inputs.test }}
     uses: ./.github/workflows/python-test.yml
     with:
       python-version: ${{ inputs.python-version }}
@@ -41,7 +41,7 @@ jobs:
       github-token: ${{ secrets.github-token }}
 
   next-version:
-    if: ${{ inputs.test == 'false' || (inputs.test == 'true' && success()) }}
+    if: ${{ !inputs.test || (inputs.test && success()) }}
     uses: ./.github/workflows/next-version.yaml
     with:
       is-pull-request: true
