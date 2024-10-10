@@ -10,6 +10,9 @@ on:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
         required: true
+      test:
+        default: true
+        type: boolean
       application-name:
         required: true
         type: string
@@ -35,6 +38,7 @@ on:
 
 jobs:
   test:
+    if: ${{ inputs.test }}
     uses: ./.github/workflows/node-test.yml
     with:
       node-version: ${{ inputs.node-version }}
@@ -42,7 +46,7 @@ jobs:
       github-token: ${{ secrets.github-token }}
 
   next-version:
-    needs: "test"
+    if: ${{ !inputs.test || (inputs.test && success()) }}
     uses: ./.github/workflows/next-version.yaml
     secrets:
       github-token: ${{ secrets.github-token }}
