@@ -19,6 +19,11 @@ on:
         description: "The tag of the image to be built"
         type: string
         required: true
+      dockerfile:
+        description: "The name of the Dockerfile to be used"
+        type: string
+        required: false
+        default: "Dockerfile"
     outputs:
       image:
         description: "The output representing the built image"
@@ -69,6 +74,7 @@ jobs:
           context: .
           push: ${{ inputs.push }}
           tags: ${{ steps.set-image.outputs.image }}
+          file: ${{ inputs.dockerfile }}
           build-args: ${{ secrets.container-build-args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
