@@ -1,0 +1,94 @@
+name: Build and push image V2
+
+on:
+  workflow_call:
+    inputs:
+      push:
+        description: "Flag to determine if the image should be pushed to the registry"
+        default: true
+        type: boolean
+      registry-url:
+        description: "The URL of the container registry"
+        type: string
+        required: true
+      tag:
+        description: "The tag of the image to be built"
+        type: string
+        required: true
+      dockerfile:
+        description: "The name of the Dockerfile to be used"
+        type: string
+        required: false
+        default: "Dockerfile"
+      image-repository:
+        description: "The name of the image repository"
+        type: string
+        required: false
+        default: "quay.io/agronod/ghcr.io"
+      image-name:
+        description: "The name of the image to be built"
+        type: string
+        required: false
+    outputs:
+      image:
+        description: "The output representing the built image"
+        value: ${{ jobs.build-and-push-image.outputs.image }}
+      tag:
+        description: "The output representing the tag of the built image"
+        value: ${{ jobs.build-and-push-image.outputs.tag }}
+    secrets:
+      registry-username:
+        description: "The username for the container registry"
+        required: true
+      registry-password:
+        description: "The password for the container registry"
+        required: true
+      container-build-args:
+        description: "Container build args"
+        required: false
+
+jobs:
+  build-and-push-image:
+    name: Build and push image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+
+      - name: Set image
+        id: set-image
+        run: |
+          if [ -z "${{ inputs.image-name }}" ]; then
+            echo "image=${{ inputs.image-repository }}/${{ github.repository }}:${{ inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "image=${{ inputs.image-repository }}/${{ inputs.image-name }}:${{ inputs.tag }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.registry-url }}
+          username: ${{ secrets.registry-username }}
+          password: ${{ secrets.registry-password }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ inputs.push }}
+          tags: ${{ steps.set-image.outputs.image }}
+          file: ${{ inputs.dockerfile }}
+          build-args: ${{ secrets.container-build-args }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+    outputs:
+      image: ${{ steps.set-image.outputs.image }}
+      tag: ${{ inputs.tag }}
