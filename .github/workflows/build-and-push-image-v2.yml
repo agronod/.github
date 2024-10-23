@@ -63,7 +63,7 @@ jobs:
           if [ -z "${{ inputs.image-name }}" ]; then
             echo "image=${{ inputs.image-repository }}/${{ github.repository }}:${{ inputs.tag }}" >> $GITHUB_OUTPUT
           else
-            echo "image=${{ inputs.image-repository }}/${{ inputs.image-name }}:${{ inputs.tag }}" >> $GITHUB_OUTPUT
+            echo "image=${{ inputs.image-repository }}/agronod/${{ inputs.image-name }}:${{ inputs.tag }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Set up Docker Buildx
