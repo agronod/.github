@@ -48,10 +48,18 @@ on:
         description: "Container build args"
         required: false
     outputs:
-      version: ${{ jobs.next-version.outputs.version }}
-      tag: ${{ jobs.next-version.outputs.tag }}
-      changelog: ${{ jobs.next-version.outputs.changelog }}
-      image: ${{ jobs.build-and-push-image.outputs.image }}
+      version:
+        description: Next version
+        value: ${{ jobs.next-version.outputs.version }}
+      tag:
+        description: Next tag
+        value: ${{ jobs.next-version.outputs.tag }}
+      changelog:
+        description: Changelog
+        value: ${{ jobs.next-version.outputs.changelog }}
+      image:
+        description: "The output representing the built image"
+        value: ${{ jobs.build-and-push-image.outputs.image }}
 
 jobs:
   test:
