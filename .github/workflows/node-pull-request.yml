@@ -40,7 +40,7 @@ jobs:
       github-token: ${{ secrets.github-token }}
 
   next-version:
-    if: ${{ !inputs.test || (needs.test.result == 'success' && needs.test.outcome != 'skipped') }}
+    if: ${{ !inputs.test || (inputs.test && success()) }}
     uses: ./.github/workflows/next-version.yaml
     with:
       is-pull-request: true
@@ -48,7 +48,6 @@ jobs:
       github-token: ${{ secrets.github-token }}
 
   build-and-push-image:
-    if: ${{ !inputs.test || (needs.test.result == 'success' && needs.test.outcome != 'skipped') }}
     needs: "next-version"
     uses: ./.github/workflows/build-and-push-image.yml
     with:
