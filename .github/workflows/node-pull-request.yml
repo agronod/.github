@@ -48,6 +48,7 @@ jobs:
       github-token: ${{ secrets.github-token }}
 
   build-and-push-image:
+    if: ${{ !inputs.test || (inputs.test && success()) }}
     needs: "next-version"
     uses: ./.github/workflows/build-and-push-image.yml
     with:
