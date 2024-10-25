@@ -49,10 +49,10 @@ on:
         required: false
     outputs:
       version:
-        description: Next version
+        description: Next version (ex 1.0.0)
         value: ${{ jobs.next-version.outputs.version }}
       tag:
-        description: Next tag
+        description: Next tag (ex v1.0.0)
         value: ${{ jobs.next-version.outputs.tag }}
       changelog:
         description: Changelog
