@@ -16,6 +16,9 @@ on:
       test:
         default: true
         type: boolean
+      check-image:
+        default: true
+        type: boolean
       application-name:
         required: false
         type: string
@@ -97,6 +100,7 @@ jobs:
       id-token: write
     with:
       rhacs-central-endpoint: ${{ inputs.rhacs-central-endpoint }}
+      check-image: ${{ inputs.check-image }}
       image: ${{ needs.build-and-push-image.outputs.image }}
 
   create-release:
