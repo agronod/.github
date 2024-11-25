@@ -1,0 +1,29 @@
+name: Test Golang application
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        default: "1.22"
+        type: string
+    secrets:
+      github-user:
+        required: true
+      github-token:
+        required: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version }}
+      - name: Install dependencies
+        run: go mod download
+      - name: Build
+        run: go build -o pod-image-proxy-webhook main.go
+      - name: Test with the Go CLI
+        run: go test -race ./...
