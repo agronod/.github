@@ -18,7 +18,7 @@ on:
 jobs:
   scan-and-check-image:
     name: Scanning and check image
-    runs-on: self-hosted
+    runs-on: dev
     steps:
       - name: Login to Central
         uses: stackrox/central-login@v1
