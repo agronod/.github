@@ -91,6 +91,7 @@ jobs:
           push: ${{ inputs.push }}
           tags: ${{ steps.set-image.outputs.image }}
           file: ${{ inputs.dockerfile }}
+          build-args: ${{ steps.export-build-args.outputs.buildArgs }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
