@@ -72,7 +72,7 @@ jobs:
         id: prepare-build-args
         run: |
           echo "${{ secrets.container-build-args }}" > container-build-args.txt
-          echo "TAG=${{ inputs.tag }}" >> container-build-args.txt
+          echo "IMAGE_TAG=${{ inputs.tag }}" >> container-build-args.txt
         shell: bash
 
       - name: Export build-args
@@ -91,7 +91,6 @@ jobs:
           push: ${{ inputs.push }}
           tags: ${{ steps.set-image.outputs.image }}
           file: ${{ inputs.dockerfile }}
-          build-args: ${{ steps.export-build-args.outputs.buildArgs }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
