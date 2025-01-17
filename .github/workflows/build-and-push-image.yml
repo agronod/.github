@@ -75,6 +75,15 @@ jobs:
           echo "TAG=${{ inputs.tag }}" >> container-build-args.txt
         shell: bash
 
+      - name: Export build-args
+        id: export-build-args
+        run: |
+          # Using GitHub's new method for setting outputs:
+          echo "buildArgs<<EOF" >> $GITHUB_OUTPUT
+          cat container-build-args.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -82,8 +91,7 @@ jobs:
           push: ${{ inputs.push }}
           tags: ${{ steps.set-image.outputs.image }}
           file: ${{ inputs.dockerfile }}
-          build-args: |
-            $(cat container-build-args.txt)
+          build-args: ${{ steps.export-build-args.outputs.buildArgs }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
