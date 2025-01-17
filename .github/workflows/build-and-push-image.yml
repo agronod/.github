@@ -68,6 +68,13 @@ jobs:
           username: ${{ secrets.registry-username }}
           password: ${{ secrets.registry-password }}
 
+      - name: Prepare build-args
+        id: prepare-build-args
+        run: |
+          # Combine secrets.container-build-args with the input tag
+          build_args="${{ secrets.container-build-args }} TAG=${{ inputs.tag }}"
+          echo "build_args=${build_args}" >> $GITHUB_ENV
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -75,7 +82,7 @@ jobs:
           push: ${{ inputs.push }}
           tags: ${{ steps.set-image.outputs.image }}
           file: ${{ inputs.dockerfile }}
-          build-args: ${{ secrets.container-build-args }}
+          build-args: ${{ env.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
