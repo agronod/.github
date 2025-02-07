@@ -2,9 +2,9 @@
 
 -
 
-## Related issue
+## Related ticket
 
-- Closes #
+- #
 
 ## How have I tested this?
 
