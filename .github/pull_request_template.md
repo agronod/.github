@@ -2,11 +2,11 @@
 
 -
 
-## Related Issue
+## Related issue
 
 - Closes #
 
-## How Has This Been Tested?
+## How have I tested this?
 
 - [ ] Tested manually on my machine
 - [ ] Automated tests
