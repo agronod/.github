@@ -83,14 +83,6 @@ jobs:
       version: ${{ needs.next-version.outputs.version }}
       changelog: ${{ needs.next-version.outputs.changelog }}
 
-  tag:
-    if: ${{ github.ref != 'refs/heads/main' }}
-    # needs: ["scan-and-check-image", "next-version"]
-    needs: ["next-version"]
-    uses: ./.github/workflows/tag.yml
-    with:
-      tag: ${{ needs.next-version.outputs.tag }}
-
   # promote-application:
   #   needs: ["scan-and-check-image", "build-and-push-image"]
   #   uses: ./.github/workflows/promote-application.yml
