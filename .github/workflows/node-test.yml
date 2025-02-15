@@ -6,6 +6,9 @@ on:
       node-version:
         required: true
         type: string
+      enabled:
+        default: true
+        type: boolean
     secrets:
       github-token:
         required: true
@@ -16,19 +19,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        if: ${{ inputs.enabled }}
         uses: actions/checkout@v2
         with:
           submodules: "true"
 
       - name: Set up Node.js
+        if: ${{ inputs.enabled }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ inputs.node-version }}
 
       - name: Install dependencies
+        if: ${{ inputs.enabled }}
         run: npm ci
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
       - name: Run tests
+        if: ${{ inputs.enabled }}
         run: npm test
