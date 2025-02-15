@@ -84,7 +84,6 @@ jobs:
       github-token: ${{ secrets.github-token }}
 
   create-release:
-    if: ${{ github.ref == 'refs/heads/main' }}
     needs: ["promote-application", "next-version"]
     uses: ./.github/workflows/create-release.yml
     with:
