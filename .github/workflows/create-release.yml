@@ -18,9 +18,19 @@ jobs:
     name: Create release
     runs-on: ubuntu-latest
     steps:
+      - name: Determine if this is a pre-release
+        id: determine-prerelease
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "prerelease=false" >> $GITHUB_ENV
+          else
+            echo "prerelease=true" >> $GITHUB_ENV
+          fi
+
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ inputs.tag }}
           name: Release ${{ inputs.version }}
           body: ${{ inputs.changelog }}
+          prerelease: ${{ env.prerelease }}
