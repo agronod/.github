@@ -66,16 +66,16 @@ on:
 
 jobs:
   test:
-    if: ${{ inputs.test }}
     uses: ./.github/workflows/python-test.yml
     with:
       python-version: ${{ inputs.python-version }}
+      enabled: ${{ inputs.test }}
     secrets:
       github-user: ${{ secrets.github-user }}
       github-token: ${{ secrets.github-token }}
 
   next-version:
-    if: ${{ !inputs.test || (inputs.test && success()) }}
+    needs: "test"
     uses: ./.github/workflows/next-version.yaml
     secrets:
       github-token: ${{ secrets.github-token }}

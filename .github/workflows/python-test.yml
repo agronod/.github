@@ -6,6 +6,9 @@ on:
       python-version:
         default: "3.10"
         type: string
+      enabled:
+        default: true
+        type: boolean
     secrets:
       github-user:
         required: true
@@ -18,17 +21,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        if: ${{ inputs.enabled }}
+
       - name: Install Python 3
+        if: ${{ inputs.enabled }}
         uses: actions/setup-python@v1
         with:
           python-version: ${{ inputs.python-version }}
+
       - name: Set env parameters
+        if: ${{ inputs.enabled }}
         run: |
           echo "GITHUB_TOKEN=${{ secrets.github-token }}" >> "$GITHUB_ENV"
           echo "GITHUB_USER=${{ secrets.github-user }}" >> "$GITHUB_ENV"
+
       - name: Install dependencies
+        if: ${{ inputs.enabled }}
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
       - name: Run tests with pytest
+        if: ${{ inputs.enabled }}
         run: pytest
