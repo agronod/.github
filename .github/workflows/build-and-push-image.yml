@@ -41,6 +41,9 @@ on:
       container-build-args:
         description: "Container build args"
         required: false
+      container-secrets:
+        description: "Container secrets"
+        required: false
 
 jobs:
   build-and-push-image:
@@ -92,6 +95,7 @@ jobs:
           tags: ${{ steps.set-image.outputs.image }}
           file: ${{ inputs.dockerfile }}
           build-args: ${{ steps.export-build-args.outputs.buildArgs }}
+          secrets: ${{ secrets.container-secrets }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

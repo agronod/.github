@@ -29,6 +29,9 @@ on:
       container-build-args:
         description: "Container build args"
         required: false
+      container-secrets:
+        description: "Container secrets"
+        required: false
 
 jobs:
   test:
@@ -58,6 +61,7 @@ jobs:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
       container-build-args: ${{ secrets.container-build-args }}
+      container-secrets: ${{ secrets.container-secrets }}
 
   scan-and-check-image:
     needs: "build-and-push-image"
