@@ -87,6 +87,9 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
         shell: bash
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
