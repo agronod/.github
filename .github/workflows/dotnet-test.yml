@@ -9,6 +9,9 @@ on:
       test-filter:
         required: true
         type: string
+      enabled:
+        default: true
+        type: boolean
     secrets:
       github-user:
         required: true
@@ -21,14 +24,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        if: ${{ inputs.enabled }}
         uses: actions/checkout@v3
 
       - name: Setup
+        if: ${{ inputs.enabled }}
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Restore
+        if: ${{ inputs.enabled }}
         run: |
           dotnet restore
         env:
@@ -36,7 +42,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
       - name: Build
+        if: ${{ inputs.enabled }}
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
+        if: ${{ inputs.enabled }}
         run: dotnet test --no-restore --verbosity normal --filter ${{ inputs.test-filter }}
