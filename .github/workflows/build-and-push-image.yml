@@ -95,7 +95,6 @@ jobs:
           tags: ${{ steps.set-image.outputs.image }}
           file: ${{ inputs.dockerfile }}
           build-args: ${{ steps.export-build-args.outputs.buildArgs }}
-          platforms: linux/amd64,linux/arm64
           secrets: ${{ secrets.container-secrets }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
