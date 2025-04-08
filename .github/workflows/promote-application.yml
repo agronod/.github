@@ -16,7 +16,7 @@ on:
         default: "image.tag"
         type: string
       platform:
-        default: "${{ inputs.platform }}"
+        default: "ocp"
         type: string
     secrets:
       github-token:

@@ -19,6 +19,10 @@ on:
       test-filter:
         default: "Category!=e2e"
         type: string
+      image-tag-parameter:
+        type: string
+      platform:
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -92,5 +96,7 @@ jobs:
       tag: ${{ needs.build-and-push-image.outputs.tag }}
       application-name: ${{ inputs.application-name }}
       application-folder: ${{ inputs.application-folder }}
+      image-tag-parameter: ${{ inputs.image-tag-parameter }}
+      platform: ${{ inputs.platform }}
     secrets:
       github-token: ${{ secrets.github-token }}
