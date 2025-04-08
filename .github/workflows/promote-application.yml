@@ -36,7 +36,7 @@ jobs:
           token: ${{ secrets.github-token }}
 
       - name: Promote to dev
-        if: ${{ github.ref == 'refs/heads/develop' }}
+        # if: ${{ github.ref == 'refs/heads/develop' }}
         uses: rmeneely/update-yaml@v1
         with:
           infile: dev-${{ inputs.platform }}/dev/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
