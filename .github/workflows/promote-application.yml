@@ -12,6 +12,12 @@ on:
       application-folder:
         required: true
         type: string
+      image-tag-parameter:
+        default: "image.tag"
+        type: string
+      platform:
+        default: "${{ inputs.platform }}"
+        type: string
     secrets:
       github-token:
         required: true
@@ -33,22 +39,22 @@ jobs:
         if: ${{ github.ref == 'refs/heads/develop' }}
         uses: rmeneely/update-yaml@v1
         with:
-          infile: dev-ocp/dev/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
-          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.tag }}"
+          infile: dev-${{ inputs.platform }}/dev/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          varlist: "spec.source.helm.parameters[name=${{ inputs.image-tag-parameter }}].value=${{ inputs.tag }}"
 
       - name: Promote to test
         if: ${{ github.ref == 'refs/heads/release' }}
         uses: rmeneely/update-yaml@v1
         with:
-          infile: dev-ocp/test/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
-          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.tag }}"
+          infile: dev-${{ inputs.platform }}/test/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          varlist: "spec.source.helm.parameters[name=${{ inputs.image-tag-parameter }}].value=${{ inputs.tag }}"
 
       - name: Promote to staging
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: rmeneely/update-yaml@v1
         with:
-          infile: prod-ocp/staging/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
-          varlist: "spec.source.helm.parameters[name=image.tag].value=${{ inputs.tag }}"
+          infile: prod-${{ inputs.platform }}/staging/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          varlist: "spec.source.helm.parameters[name=${{ inputs.image-tag-parameter }}].value=${{ inputs.tag }}"
 
       - name: Commit files
         run: |
