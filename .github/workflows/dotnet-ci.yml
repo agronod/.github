@@ -23,6 +23,9 @@ on:
         type: string
       platform:
         type: string
+      test:
+        default: true
+        type: boolean        
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -49,6 +52,7 @@ jobs:
     with:
       dotnet-version: ${{ inputs.dotnet-version }}
       test-filter: ${{ inputs.test-filter }}
+      enabled: ${{ inputs.test }}      
     secrets:
       github-user: ${{ secrets.github-user }}
       github-token: ${{ secrets.github-token }}
