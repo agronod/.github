@@ -22,6 +22,7 @@ on:
       image-tag-parameter:
         type: string
       platform:
+        default: "ocp"
         type: string
       test:
         default: true
