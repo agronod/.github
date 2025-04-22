@@ -20,6 +20,7 @@ on:
         default: "Category!=e2e"
         type: string
       image-tag-parameter:
+        default: "image.tag"
         type: string
       platform:
         default: "ocp"
