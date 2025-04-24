@@ -36,19 +36,17 @@ jobs:
           ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
 
-      - name: Fetch all tags reachable from base branch
+      - name: Fetch all tags and get latest for PRs
         if: ${{ inputs.is-pull-request }}
         run: |
           git fetch --tags
-          LATEST_TAG=$(git describe --tags --abbrev=0)
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          RAW_TAG=$(git describe --tags --abbrev=0)
+          TAG_WITHOUT_V=${RAW_TAG#v}
+          NEW_TAG="${RAW_TAG}-${{ github.event.number }}-$(git rev-parse --short HEAD)"
+          NEW_VERSION="${TAG_WITHOUT_V}-${{ github.event.number }}-$(git rev-parse --short HEAD)"
 
-      - name: Create CI version tag
-        if: ${{ inputs.is-pull-request }}
-        run: |
-          NEW_TAG="${LATEST_TAG}-${{ github.event.number }}-$(git rev-parse --short HEAD)"
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-          echo "NEW_VERSION=${NEW_TAG}" >> $GITHUB_ENV
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
       - name: Identify new semver version
         if: ${{ !inputs.is-pull-request }}
