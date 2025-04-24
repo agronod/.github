@@ -35,25 +35,43 @@ jobs:
           branch: main
           token: ${{ secrets.github-token }}
 
-      - name: Promote to dev
-        if: ${{ github.ref == 'refs/heads/develop' }}
+      - name: Set environment info
+        id: set-env
+        run: |
+          case "${REF}" in
+            refs/heads/develop)
+              echo "cluster=dev" >> $GITHUB_OUTPUT
+              echo "env=dev" >> $GITHUB_OUTPUT
+              ;;
+            refs/heads/release)
+              echo "cluster=dev" >> $GITHUB_OUTPUT
+              echo "env=test" >> $GITHUB_OUTPUT
+              ;;
+            refs/heads/main)
+              echo "cluster=prod" >> $GITHUB_OUTPUT
+              echo "env=staging" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Unknown branch. Skipping."
+              exit 1
+              ;;
+          esac
+        env:
+          REF: ${{ github.ref }}
+
+      - name: Promote
+        if: ${{ steps.set-env.outputs.env != '' }}
         uses: rmeneely/update-yaml@v1
         with:
-          infile: dev-${{ inputs.platform }}/dev/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          infile: ${{ steps.set-env.outputs.cluster }}-${{ inputs.platform }}/${{ steps.set-env.outputs.env }}/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
           varlist: "spec.source.helm.parameters[name=${{ inputs.image-tag-parameter }}].value=${{ inputs.tag }}"
 
-      - name: Promote to test
-        if: ${{ github.ref == 'refs/heads/release' }}
+      - name: Promote to Elastisys - TEMP
+        if: ${{ steps.set-env.outputs.env == 'dev' && inputs.platform == 'ocp' }}
+        continue-on-error: true
         uses: rmeneely/update-yaml@v1
         with:
-          infile: dev-${{ inputs.platform }}/test/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
-          varlist: "spec.source.helm.parameters[name=${{ inputs.image-tag-parameter }}].value=${{ inputs.tag }}"
-
-      - name: Promote to staging
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: rmeneely/update-yaml@v1
-        with:
-          infile: prod-${{ inputs.platform }}/staging/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          infile: ${{ steps.set-env.outputs.cluster }}-elastisys/${{ steps.set-env.outputs.env }}/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
           varlist: "spec.source.helm.parameters[name=${{ inputs.image-tag-parameter }}].value=${{ inputs.tag }}"
 
       - name: Commit files
