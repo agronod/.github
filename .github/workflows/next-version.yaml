@@ -64,9 +64,11 @@ jobs:
         run: |
           NEW_TAG="${{ steps.tag_version.outputs.new_tag }}"
           NEW_VERSION="${{ steps.tag_version.outputs.new_version }}"
+          CHANGE_LOG="${{ steps.tag_version.outputs.changelog }}"
 
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "CHANGE_LOG=$CHANGE_LOG" >> $GITHUB_ENV
 
       - name: Show tag and version
         run: |
@@ -76,4 +78,4 @@ jobs:
     outputs:
       tag: ${{ env.NEW_TAG }}
       version: ${{ env.NEW_VERSION }}
-      changelog: ${{ steps.tag_version.outputs.changelog }}
+      changelog: ${{ env.CHANGE_LOG }}
