@@ -42,8 +42,8 @@ jobs:
           git fetch --tags
           RAW_TAG=$(git describe --tags --abbrev=0)
           TAG_WITHOUT_V=${RAW_TAG#v}
-          NEW_TAG="${RAW_TAG}-${{ github.event.number }}-$(git rev-parse --short HEAD)"
-          NEW_VERSION="${TAG_WITHOUT_V}-${{ github.event.number }}-$(git rev-parse --short HEAD)"
+          NEW_TAG="${RAW_TAG}-${{ github.event.number }}-$(git rev-parse --short ${{ github.event.pull_request.head.sha }})"
+          NEW_VERSION="${TAG_WITHOUT_V}-${{ github.event.number }}-$(git rev-parse --short ${{ github.event.pull_request.head.sha }})"
 
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
