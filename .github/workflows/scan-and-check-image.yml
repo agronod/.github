@@ -14,9 +14,13 @@ on:
       check-image:
         default: true
         type: boolean
+      enabled:
+        default: false
+        type: boolean
 
 jobs:
   scan-and-check-image:
+    if: ${{ inputs.enabled }}
     name: Scanning and check image
     runs-on: dev
     steps:
