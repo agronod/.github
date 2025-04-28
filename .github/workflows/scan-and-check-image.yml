@@ -20,28 +20,30 @@ on:
 
 jobs:
   scan-and-check-image:
-    if: ${{ inputs.enabled }}
     name: Scanning and check image
     runs-on: dev
     steps:
       - name: Login to Central
+        if: ${{ inputs.enabled }}
         uses: stackrox/central-login@v1
         with:
           endpoint: ${{ inputs.rhacs-central-endpoint }}
 
       - name: Install roxctl from Central
+        if: ${{ inputs.enabled }}
         uses: stackrox/roxctl-installer-action@01986cbb13746f478ee661d54f84e62940980fed
         with:
           central-endpoint: https://${{ env.ROX_ENDPOINT }}
           central-token: ${{ env.ROX_API_TOKEN }}
 
       - name: Scan image with roxctl
+        if: ${{ inputs.enabled }}
         shell: bash
         run: |
           roxctl image scan --output=table --image="${{ inputs.image }}"
 
       - name: Check image with roxctl
-        if: ${{ inputs.check-image }}
+        if: ${{ inputs.enabled && inputs.check-image }}
         shell: bash
         run: |
           roxctl image check --output=table --image="${{ inputs.image }}"
