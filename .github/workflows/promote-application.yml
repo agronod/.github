@@ -67,7 +67,7 @@ jobs:
           varlist: "spec.source.helm.parameters[name=${{ inputs.image-tag-parameter }}].value=${{ inputs.tag }}"
 
       - name: Promote to Elastisys - TEMP
-        if: ${{ steps.set-env.outputs.env == 'dev' && inputs.platform == 'ocp' }}
+        if: ${{ (steps.set-env.outputs.env == 'dev' || steps.set-env.outputs.env == 'test') && inputs.platform == 'ocp' }}
         continue-on-error: true
         uses: rmeneely/update-yaml@v1
         with:
