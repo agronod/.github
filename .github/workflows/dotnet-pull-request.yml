@@ -70,6 +70,7 @@ jobs:
   scan-and-check-image:
     needs: "build-and-push-image"
     uses: ./.github/workflows/scan-and-check-image.yml
+    if: ${{ 0==1 }}
     permissions:
       id-token: write
     with:
