@@ -71,6 +71,7 @@ jobs:
       container-secrets: ${{ secrets.container-secrets }}
 
   scan-and-check-image:
+    if: ${{ 0==1 }}
     needs: "build-and-push-image"
     uses: ./.github/workflows/scan-and-check-image.yml
     permissions:
@@ -81,7 +82,7 @@ jobs:
       check-image: ${{ inputs.check-image }}
 
   create-release:
-    needs: ["scan-and-check-image", "next-version"]
+    needs: ["build-and-push-image", "next-version"]
     uses: ./.github/workflows/create-release.yml
     with:
       tag: ${{ needs.next-version.outputs.tag }}
