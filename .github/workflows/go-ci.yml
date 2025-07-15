@@ -20,10 +20,10 @@ on:
         default: true
         type: boolean
       application-name:
-        required: true
+        required: false
         type: string
       application-folder:
-        required: true
+        required: false
         type: string
       check-image:
         default: true
