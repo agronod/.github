@@ -16,9 +16,6 @@ on:
       coverage:
         default: true
         type: boolean
-      lint:
-        default: true
-        type: boolean
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -46,7 +43,6 @@ jobs:
       go-version: ${{ inputs.go-version }}
       enabled: ${{ inputs.test }}
       coverage: ${{ inputs.coverage }}
-      lint: ${{ inputs.lint }}
     secrets:
       github-token: ${{ secrets.github-token }}
 

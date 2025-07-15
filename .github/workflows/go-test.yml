@@ -12,9 +12,6 @@ on:
       coverage:
         default: true
         type: boolean
-      lint:
-        default: true
-        type: boolean
     secrets:
       github-token:
         required: true
@@ -52,15 +49,3 @@ jobs:
         run: |
           go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
           go tool cover -func=coverage.out
-
-      - name: Install golangci-lint
-        if: ${{ inputs.enabled && inputs.lint }}
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
-          skip-pkg-cache: true
-          skip-build-cache: true
-
-      - name: Run golangci-lint
-        if: ${{ inputs.enabled && inputs.lint }}
-        run: golangci-lint run --timeout=5m

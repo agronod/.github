@@ -13,10 +13,10 @@ on:
       test:
         default: true
         type: boolean
-      coverage:
+      promote:
         default: true
         type: boolean
-      lint:
+      coverage:
         default: true
         type: boolean
       application-name:
@@ -55,7 +55,6 @@ jobs:
       go-version: ${{ inputs.go-version }}
       enabled: ${{ inputs.test }}
       coverage: ${{ inputs.coverage }}
-      lint: ${{ inputs.lint }}
     secrets:
       github-token: ${{ secrets.github-token }}
 
@@ -98,6 +97,7 @@ jobs:
       changelog: ${{ needs.next-version.outputs.changelog }}
 
   promote-application:
+    if: ${{ inputs.promote }}
     needs: ["create-release", "build-and-push-image"]
     uses: ./.github/workflows/promote-application.yml
     with:
