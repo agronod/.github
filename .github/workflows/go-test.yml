@@ -1,0 +1,51 @@
+name: Test Go application
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        required: true
+        type: string
+      enabled:
+        default: true
+        type: boolean
+      coverage:
+        default: true
+        type: boolean
+    secrets:
+      github-token:
+        required: true
+
+jobs:
+  go-install-and-test:
+    name: go install and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        if: ${{ inputs.enabled }}
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+
+      - name: Set up Go
+        if: ${{ inputs.enabled }}
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache: true
+
+      - name: Download dependencies
+        if: ${{ inputs.enabled }}
+        run: go mod download
+        env:
+          GITHUB_TOKEN: ${{ secrets.github-token }}
+
+      - name: Run tests
+        if: ${{ inputs.enabled && !inputs.coverage }}
+        run: go test -v ./...
+
+      - name: Run tests with coverage
+        if: ${{ inputs.enabled && inputs.coverage }}
+        run: |
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          go tool cover -func=coverage.out

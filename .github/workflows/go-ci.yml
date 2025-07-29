@@ -1,0 +1,108 @@
+name: Go CI
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        default: "1.21"
+        type: string
+      rhacs-central-endpoint:
+        description: "The endpoint URL of the RHACS Central server for authentication."
+        type: string
+        required: true
+      test:
+        default: true
+        type: boolean
+      promote:
+        default: true
+        type: boolean
+      coverage:
+        default: true
+        type: boolean
+      application-name:
+        required: false
+        type: string
+      application-folder:
+        required: false
+        type: string
+      check-image:
+        default: true
+        type: boolean
+    secrets:
+      github-user:
+        description: "Github username for the container registry"
+        required: true
+      github-token:
+        description: "Github token to be able to build inside the container"
+        required: true
+      registry-username:
+        description: "The username for the container registry"
+        required: true
+      registry-password:
+        description: "The password for the container registry"
+        required: true
+      container-build-args:
+        description: "Container build args"
+        required: false
+      container-secrets:
+        description: "Container secrets"
+        required: false
+
+jobs:
+  test:
+    uses: ./.github/workflows/go-test.yml
+    with:
+      go-version: ${{ inputs.go-version }}
+      enabled: ${{ inputs.test }}
+      coverage: ${{ inputs.coverage }}
+    secrets:
+      github-token: ${{ secrets.github-token }}
+
+  next-version:
+    needs: "test"
+    uses: ./.github/workflows/next-version.yaml
+    secrets:
+      github-token: ${{ secrets.github-token }}
+
+  build-and-push-image:
+    needs: "next-version"
+    uses: ./.github/workflows/build-and-push-image.yml
+    with:
+      registry-url: "quay.io"
+      image-name: "quay.io/agronod/ghcr.io/${{ github.repository }}"
+      tag: ${{ needs.next-version.outputs.version }}
+    secrets:
+      registry-username: ${{ secrets.registry-username }}
+      registry-password: ${{ secrets.registry-password }}
+      container-build-args: ${{ secrets.container-build-args }}
+      container-secrets: ${{ secrets.container-secrets }}
+
+  scan-and-check-image:
+    if: ${{ 0==1 }}
+    needs: "build-and-push-image"
+    uses: ./.github/workflows/scan-and-check-image.yml
+    permissions:
+      id-token: write
+    with:
+      rhacs-central-endpoint: ${{ inputs.rhacs-central-endpoint }}
+      image: ${{ needs.build-and-push-image.outputs.image }}
+      check-image: ${{ inputs.check-image }}
+
+  create-release:
+    needs: ["build-and-push-image", "next-version"]
+    uses: ./.github/workflows/create-release.yml
+    with:
+      tag: ${{ needs.next-version.outputs.tag }}
+      version: ${{ needs.next-version.outputs.version }}
+      changelog: ${{ needs.next-version.outputs.changelog }}
+
+  promote-application:
+    if: ${{ inputs.promote }}
+    needs: ["create-release", "build-and-push-image"]
+    uses: ./.github/workflows/promote-application.yml
+    with:
+      tag: ${{ needs.build-and-push-image.outputs.tag }}
+      application-name: ${{ inputs.application-name }}
+      application-folder: ${{ inputs.application-folder }}
+    secrets:
+      github-token: ${{ secrets.github-token }}

@@ -1,0 +1,30 @@
+# Product Requirements Prompt (PRP)
+
+## FEATURE:
+GitHub Actions workflows for Go - implementing CI, Pull Request, and Test workflows following the existing patterns for Node.js, Python, and .NET workflows in the repository.
+
+## EXAMPLES:
+- Existing workflow patterns in .github/workflows/:
+  - node-ci.yml, node-pull-request.yml, node-test.yml
+  - python-ci.yml, python-pull-request.yml, python-test.yml
+  - dotnet-ci.yml, dotnet-pull-request.yml, dotnet-test.yml
+- Reusable workflow pattern with inputs and secrets
+- Consistent naming conventions and structure
+
+## DOCUMENTATION:
+- GitHub Actions documentation for Go
+- Go official documentation for testing and building
+- Existing workflow files in the repository as reference patterns
+- Standard Go tools: go test, go build, go mod, golangci-lint
+
+## OTHER CONSIDERATIONS:
+- Follow the same pattern as existing language workflows (CI, Pull Request, Test)
+- Use reusable workflows with appropriate inputs and secrets
+- Include standard Go development practices (module management, testing, linting)
+- Maintain consistency with existing workflow naming conventions
+- Support multiple Go versions similar to how Node.js and Python workflows support multiple versions
+- Include code coverage reporting
+- Follow the existing pattern of using workflow_call for reusability
+
+---
+Created: 2025-07-15
