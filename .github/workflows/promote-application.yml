@@ -16,7 +16,7 @@ on:
         default: "image.tag"
         type: string
       platform:
-        default: "ocp"
+        default: "elastisys"
         type: string
     secrets:
       github-token:
@@ -60,14 +60,14 @@ jobs:
           REF: ${{ github.ref }}
 
       - name: Promote to OCP
-        if: ${{ steps.set-env.outputs.env != '' }}
+        if: ${{ steps.set-env.outputs.env != '' && inputs.platform == 'ocp' }}
         uses: rmeneely/update-yaml@v1
         with:
           infile: ${{ steps.set-env.outputs.cluster }}-${{ inputs.platform }}/${{ steps.set-env.outputs.env }}/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
           varlist: "spec.source.helm.parameters[name=${{ inputs.image-tag-parameter }}].value=${{ inputs.tag }}"
 
       - name: Promote to Elastisys
-        if: ${{ steps.set-env.outputs.env != '' }}
+        if: ${{ steps.set-env.outputs.env != '' && inputs.platform != 'ocp' }}
         uses: rmeneely/update-yaml@v1
         with:
           infile: ${{ steps.set-env.outputs.cluster }}-elastisys/${{ steps.set-env.outputs.env }}/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
