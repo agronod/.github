@@ -23,7 +23,6 @@ on:
         default: "image.tag"
         type: string
       platform:
-        default: "ocp"
         type: string
       test:
         default: true
