@@ -9,12 +9,15 @@ on:
       rhacs-central-endpoint:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
-        required: true
+        required: false
       test:
         default: true
         type: boolean
       check-image:
         default: true
+        type: boolean
+      enforce-scanning:
+        default: false
         type: boolean
       dockerfile:
         description: "The name of the Dockerfile to be used"
@@ -76,10 +79,11 @@ jobs:
   scan-and-check-image:
     needs: "build-and-push-image"
     uses: ./.github/workflows/scan-and-check-image.yml
-    if: ${{ 0==1 }}
-    permissions:
-      id-token: write
     with:
-      rhacs-central-endpoint: ${{ inputs.rhacs-central-endpoint }}
-      check-image: ${{ inputs.check-image }}
       image: ${{ needs.build-and-push-image.outputs.image }}
+      check-image: ${{ inputs.check-image }}
+      enforce-scanning: ${{ inputs.enforce-scanning }}
+    secrets:
+      registry-username: ${{ secrets.registry-username }}
+      registry-password: ${{ secrets.registry-password }}
+      github-token: ${{ secrets.github-token }}
