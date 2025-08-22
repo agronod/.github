@@ -10,40 +10,50 @@ on:
       rhacs-central-endpoint:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
-        required: true
+        required: false
       check-image:
+        description: "Whether to scan the image"
         default: true
         type: boolean
-      enabled:
-        default: false
+      enforce-scanning:
+        description: "Whether to enforce vulnerabilities as failures"
+        default: true
         type: boolean
-
+    secrets:
+      registry-username:
+        description: "The username for the container registry"
+        required: true
+      registry-password:
+        description: "The password for the container registry"
+        required: true
+      github-token:
+        description: "Github token to be able to checkout trivyignore repo"
+        required: true
 jobs:
   scan-and-check-image:
     name: Scanning and check image
-    runs-on: dev
+    runs-on: ubuntu-latest
     steps:
-      - name: Login to Central
-        if: ${{ inputs.enabled }}
-        uses: stackrox/central-login@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          endpoint: ${{ inputs.rhacs-central-endpoint }}
+          repository: "agronod/trivyignore"
+          token: '${{ secrets.github-token }}'
 
-      - name: Install roxctl from Central
-        if: ${{ inputs.enabled }}
-        uses: stackrox/roxctl-installer-action@01986cbb13746f478ee661d54f84e62940980fed
+      - name: Check for .trivyignore.yaml
+        run: |
+          if [ -f ".trivyignore.yaml" ]; then
+            echo "TRIVY_IGNOREFILE=.trivyignore.yaml" >> $GITHUB_ENV
+          fi
+
+      - name: Run Trivy vulnerability scanner
+        if: ${{ inputs.check-image }}
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          central-endpoint: https://${{ env.ROX_ENDPOINT }}
-          central-token: ${{ env.ROX_API_TOKEN }}
-
-      - name: Scan image with roxctl
-        if: ${{ inputs.enabled }}
-        shell: bash
-        run: |
-          roxctl image scan --output=table --image="${{ inputs.image }}"
-
-      - name: Check image with roxctl
-        if: ${{ inputs.enabled && inputs.check-image }}
-        shell: bash
-        run: |
-          roxctl image check --output=table --image="${{ inputs.image }}"
+          image-ref: '${{ inputs.image }}'
+          format: 'table'
+          exit-code: ${{ inputs.enforce && '1' || '0' }}
+          severity: 'CRITICAL,HIGH'
+        env:
+          TRIVY_USERNAME: ${{ secrets.registry-username }}
+          TRIVY_PASSWORD: ${{ secrets.registry-password }}

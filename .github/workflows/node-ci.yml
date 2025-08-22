@@ -9,7 +9,7 @@ on:
       rhacs-central-endpoint:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
-        required: true
+        required: false
       test:
         default: true
         type: boolean
@@ -21,6 +21,9 @@ on:
         type: string
       check-image:
         default: true
+        type: boolean
+      enforce-scanning:
+        default: false
         type: boolean
     secrets:
       github-user:
@@ -71,18 +74,19 @@ jobs:
       container-secrets: ${{ secrets.container-secrets }}
 
   scan-and-check-image:
-    if: ${{ 0==1 }}
     needs: "build-and-push-image"
     uses: ./.github/workflows/scan-and-check-image.yml
-    permissions:
-      id-token: write
     with:
-      rhacs-central-endpoint: ${{ inputs.rhacs-central-endpoint }}
       image: ${{ needs.build-and-push-image.outputs.image }}
       check-image: ${{ inputs.check-image }}
+      enforce-scanning: ${{ inputs.enforce-scanning }}
+    secrets:
+      registry-username: ${{ secrets.registry-username }}
+      registry-password: ${{ secrets.registry-password }}
+      github-token: ${{ secrets.github-token }}
 
   create-release:
-    needs: ["build-and-push-image", "next-version"]
+    needs: ["scan-and-check-image", "next-version"]
     uses: ./.github/workflows/create-release.yml
     with:
       tag: ${{ needs.next-version.outputs.tag }}
