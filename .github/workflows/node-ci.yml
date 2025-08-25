@@ -72,6 +72,7 @@ jobs:
       registry-url: "quay.io"
       image-name: "quay.io/agronod/ghcr.io/${{ github.repository }}"
       tag: ${{ needs.next-version.outputs.version }}
+      working-directory: ${{ inputs.working-directory }}
     secrets:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}

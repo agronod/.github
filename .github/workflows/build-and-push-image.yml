@@ -24,6 +24,10 @@ on:
         type: string
         required: false
         default: "Dockerfile"
+      working-directory:
+        description: "Path to the directory containing the Dockerfile"
+        default: "."
+        type: string
     outputs:
       image:
         description: "The output representing the built image"
@@ -90,10 +94,10 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ inputs.working-directory }}
           push: ${{ inputs.push }}
           tags: ${{ steps.set-image.outputs.image }}
-          file: ${{ inputs.dockerfile }}
+          file: ${{ inputs.working-directory != '.' && format('{0}/{1}', inputs.working-directory, inputs.dockerfile) || inputs.dockerfile }}
           build-args: ${{ steps.export-build-args.outputs.buildArgs }}
           secrets: ${{ secrets.container-secrets }}
           cache-from: type=gha
