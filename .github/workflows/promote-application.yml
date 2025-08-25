@@ -61,17 +61,21 @@ jobs:
 
       - name: Promote to OCP
         if: ${{ steps.set-env.outputs.env != '' && inputs.platform == 'ocp' }}
-        uses: rmeneely/update-yaml@v1
+        uses: fjogeleit/yaml-update-action@main
         with:
-          infile: ${{ steps.set-env.outputs.cluster }}-${{ inputs.platform }}/${{ steps.set-env.outputs.env }}/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
-          varlist: "spec.source.helm.parameters[name='${{ inputs.image-tag-parameter }}'].value=${{ inputs.tag }}"
+          valueFile: ${{ steps.set-env.outputs.cluster }}-${{ inputs.platform }}/${{ steps.set-env.outputs.env }}/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          propertyPath: "$.spec.source.helm.parameters[?(@.name=='${{ inputs.image-tag-parameter }}')].value"
+          value: ${{ inputs.tag }}
+          commitChange: false
 
       - name: Promote to Elastisys
         if: ${{ steps.set-env.outputs.env != '' && inputs.platform != 'ocp' }}
-        uses: rmeneely/update-yaml@v1
+        uses: fjogeleit/yaml-update-action@main
         with:
-          infile: ${{ steps.set-env.outputs.cluster }}-elastisys/${{ steps.set-env.outputs.env }}/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
-          varlist: "spec.source.helm.parameters[name='${{ inputs.image-tag-parameter }}'].value=${{ inputs.tag }}"
+          valueFile: ${{ steps.set-env.outputs.cluster }}-elastisys/${{ steps.set-env.outputs.env }}/${{ inputs.application-folder }}/${{ inputs.application-name }}.yaml
+          propertyPath: "$.spec.source.helm.parameters[?(@.name=='${{ inputs.image-tag-parameter }}')].value"
+          value: ${{ inputs.tag }}
+          commitChange: false
 
       - name: Commit files
         run: |
