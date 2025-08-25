@@ -6,6 +6,10 @@ on:
       dotnet-version:
         required: true
         type: string
+      working-directory:
+        description: "Path to the directory containing the .NET solution or project"
+        default: "."
+        type: string
       rhacs-central-endpoint:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
@@ -55,6 +59,7 @@ jobs:
     uses: ./.github/workflows/dotnet-test.yml
     with:
       dotnet-version: ${{ inputs.dotnet-version }}
+      working-directory: ${{ inputs.working-directory }}
       test-filter: ${{ inputs.test-filter }}
       enabled: ${{ inputs.test }}
     secrets:
@@ -74,6 +79,7 @@ jobs:
       registry-url: "quay.io"
       image-name: "quay.io/agronod/ghcr.io/${{ github.repository }}"
       tag: ${{ needs.next-version.outputs.version }}
+      working-directory: ${{ inputs.working-directory }}
     secrets:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}

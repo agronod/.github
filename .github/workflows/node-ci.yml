@@ -6,6 +6,10 @@ on:
       node-version:
         default: "20.15.0"
         type: string
+      working-directory:
+        description: "Path to the directory containing the Node.js project"
+        default: "."
+        type: string
       rhacs-central-endpoint:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
@@ -22,6 +26,9 @@ on:
       check-image:
         default: true
         type: boolean
+      image-tag-parameter:
+        default: "image.tag"
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -47,6 +54,7 @@ jobs:
     uses: ./.github/workflows/node-test.yml
     with:
       node-version: ${{ inputs.node-version }}
+      working-directory: ${{ inputs.working-directory }}
       enabled: ${{ inputs.test }}
     secrets:
       github-token: ${{ secrets.github-token }}
@@ -64,6 +72,7 @@ jobs:
       registry-url: "quay.io"
       image-name: "quay.io/agronod/ghcr.io/${{ github.repository }}"
       tag: ${{ needs.next-version.outputs.version }}
+      working-directory: ${{ inputs.working-directory }}
     secrets:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
@@ -96,5 +105,6 @@ jobs:
       tag: ${{ needs.build-and-push-image.outputs.tag }}
       application-name: ${{ inputs.application-name }}
       application-folder: ${{ inputs.application-folder }}
+      image-tag-parameter: ${{ inputs.image-tag-parameter }}
     secrets:
       github-token: ${{ secrets.github-token }}

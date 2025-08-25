@@ -1,10 +1,14 @@
-name: Test Nestjs application
+name: Test .NET application
 
 on:
   workflow_call:
     inputs:
       dotnet-version:
         required: true
+        type: string
+      working-directory:
+        description: "Path to the directory containing the .NET solution or project"
+        default: "."
         type: string
       test-filter:
         required: true
@@ -35,6 +39,7 @@ jobs:
 
       - name: Restore
         if: ${{ inputs.enabled }}
+        working-directory: ${{ inputs.working-directory }}
         run: |
           dotnet restore
         env:
@@ -43,8 +48,10 @@ jobs:
 
       - name: Build
         if: ${{ inputs.enabled }}
+        working-directory: ${{ inputs.working-directory }}
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
         if: ${{ inputs.enabled }}
+        working-directory: ${{ inputs.working-directory }}
         run: dotnet test --no-restore --verbosity normal --filter ${{ inputs.test-filter }}
