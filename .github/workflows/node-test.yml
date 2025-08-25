@@ -1,10 +1,14 @@
-name: Test Nestjs application
+name: Test Node.js application
 
 on:
   workflow_call:
     inputs:
       node-version:
         required: true
+        type: string
+      working-directory:
+        description: "Path to the directory containing the Node.js project"
+        default: "."
         type: string
       enabled:
         default: true
@@ -32,10 +36,12 @@ jobs:
 
       - name: Install dependencies
         if: ${{ inputs.enabled }}
+        working-directory: ${{ inputs.working-directory }}
         run: npm ci
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
       - name: Run tests
         if: ${{ inputs.enabled }}
+        working-directory: ${{ inputs.working-directory }}
         run: npm test
