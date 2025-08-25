@@ -14,6 +14,10 @@ on:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
         required: true
+      image-name:
+        required: false
+        default: ""
+        type: string
       test-filter:
         default: "Category!=e2e"
         type: string
@@ -64,7 +68,7 @@ jobs:
     uses: ./.github/workflows/build-and-push-image.yml
     with:
       registry-url: "quay.io"
-      image-name: "quay.io/agronod/ghcr.io/${{ github.repository }}"
+      image-name: "quay.io/agronod/ghcr.io/${{ inputs.image-name != '' && inputs.image-name || github.repository }}"
       tag: ${{ needs.next-version.outputs.version }}
       working-directory: ${{ inputs.working-directory }}
     secrets:

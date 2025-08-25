@@ -29,6 +29,10 @@ on:
       image-tag-parameter:
         default: "image.tag"
         type: string
+      image-name:
+        required: false
+        default: ""
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -70,7 +74,7 @@ jobs:
     uses: ./.github/workflows/build-and-push-image.yml
     with:
       registry-url: "quay.io"
-      image-name: "quay.io/agronod/ghcr.io/${{ github.repository }}"
+      image-name: "quay.io/agronod/ghcr.io/${{ inputs.image-name != '' && inputs.image-name || github.repository }}"
       tag: ${{ needs.next-version.outputs.version }}
       working-directory: ${{ inputs.working-directory }}
     secrets:
