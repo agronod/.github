@@ -6,6 +6,10 @@ on:
       dotnet-version:
         required: true
         type: string
+      working-directory:
+        description: "Path to the directory containing the .NET solution or project"
+        default: "."
+        type: string
       rhacs-central-endpoint:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
@@ -15,7 +19,7 @@ on:
         type: string
       check-image:
         default: true
-        type: boolean        
+        type: boolean
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -41,6 +45,7 @@ jobs:
     uses: ./.github/workflows/dotnet-test.yml
     with:
       dotnet-version: ${{ inputs.dotnet-version }}
+      working-directory: ${{ inputs.working-directory }}
       test-filter: ${{ inputs.test-filter }}
     secrets:
       github-user: ${{ secrets.github-user }}
