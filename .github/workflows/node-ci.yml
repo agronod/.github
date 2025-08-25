@@ -26,6 +26,9 @@ on:
       check-image:
         default: true
         type: boolean
+      image-tag-parameter:
+        default: "image.tag"
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -101,5 +104,6 @@ jobs:
       tag: ${{ needs.build-and-push-image.outputs.tag }}
       application-name: ${{ inputs.application-name }}
       application-folder: ${{ inputs.application-folder }}
+      image-tag-parameter: ${{ inputs.image-tag-parameter }}
     secrets:
       github-token: ${{ secrets.github-token }}
