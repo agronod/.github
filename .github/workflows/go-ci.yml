@@ -47,6 +47,19 @@ on:
       container-secrets:
         description: "Container secrets"
         required: false
+    outputs:
+      version:
+        description: Next version (ex 1.0.0)
+        value: ${{ jobs.next-version.outputs.version }}
+      tag:
+        description: Next tag (ex v1.0.0)
+        value: ${{ jobs.next-version.outputs.tag }}
+      changelog:
+        description: Changelog
+        value: ${{ jobs.next-version.outputs.changelog }}
+      image:
+        description: "The output representing the built image"
+        value: ${{ jobs.build-and-push-image.outputs.image }}
 
 jobs:
   test:
