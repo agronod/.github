@@ -34,6 +34,10 @@ on:
         description: "The name of the image to be built"
         type: string
         required: false
+      environment:
+        description: "Override environment (e.g., dev, test, staging, production). If not provided, will be calculated from branch."
+        required: false
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -120,5 +124,6 @@ jobs:
       tag: ${{ needs.build-and-push-image.outputs.tag }}
       application-name: ${{ inputs.application-name }}
       application-folder: ${{ inputs.application-folder }}
+      environment: ${{ inputs.environment }}
     secrets:
       github-token: ${{ secrets.github-token }}

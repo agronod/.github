@@ -29,6 +29,10 @@ on:
       image-tag-parameter:
         default: "image.tag"
         type: string
+      environment:
+        description: "Override environment (e.g., dev, test, staging, production). If not provided, will be calculated from branch."
+        required: false
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -106,5 +110,6 @@ jobs:
       application-name: ${{ inputs.application-name }}
       application-folder: ${{ inputs.application-folder }}
       image-tag-parameter: ${{ inputs.image-tag-parameter }}
+      environment: ${{ inputs.environment }}
     secrets:
       github-token: ${{ secrets.github-token }}

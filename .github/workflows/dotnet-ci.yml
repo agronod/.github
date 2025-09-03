@@ -34,6 +34,10 @@ on:
       check-image:
         default: true
         type: boolean
+      environment:
+        description: "Override environment (e.g., dev, test, staging, production). If not provided, will be calculated from branch."
+        required: false
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -114,5 +118,6 @@ jobs:
       application-folder: ${{ inputs.application-folder }}
       image-tag-parameter: ${{ inputs.image-tag-parameter }}
       platform: ${{ inputs.platform }}
+      environment: ${{ inputs.environment }}
     secrets:
       github-token: ${{ secrets.github-token }}

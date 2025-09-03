@@ -16,7 +16,12 @@ on:
         default: "image.tag"
         type: string
       platform:
+        description: "(Deprecated) The platform to deploy to."
         default: "elastisys"
+        type: string
+      environment:
+        description: "Override environment (e.g., dev, test, staging, production). If not provided, will be calculated from branch."
+        required: false
         type: string
     secrets:
       github-token:
@@ -38,21 +43,39 @@ jobs:
       - name: Set environment info
         id: set-env
         run: |
-          case "${REF}" in
-            refs/heads/develop)
+          # Determine environment (from input or branch)
+          if [ -n "${{ inputs.environment }}" ]; then
+            ENV="${{ inputs.environment }}"
+            echo "env=${ENV}" >> $GITHUB_OUTPUT
+          else
+            case "${REF}" in
+              refs/heads/develop)
+                ENV="dev"
+                ;;
+              refs/heads/release)
+                ENV="test"
+                ;;
+              refs/heads/main)
+                ENV="staging"
+                ;;
+              *)
+                echo "Unknown branch. Skipping."
+                exit 1
+                ;;
+            esac
+            echo "env=${ENV}" >> $GITHUB_OUTPUT
+          fi
+
+          # Derive cluster from environment
+          case "${ENV}" in
+            dev|test)
               echo "cluster=dev" >> $GITHUB_OUTPUT
-              echo "env=dev" >> $GITHUB_OUTPUT
               ;;
-            refs/heads/release)
-              echo "cluster=dev" >> $GITHUB_OUTPUT
-              echo "env=test" >> $GITHUB_OUTPUT
-              ;;
-            refs/heads/main)
+            staging|production|prod)
               echo "cluster=prod" >> $GITHUB_OUTPUT
-              echo "env=staging" >> $GITHUB_OUTPUT
               ;;
             *)
-              echo "Unknown branch. Skipping."
+              echo "Unknown environment: ${ENV}. Cannot determine cluster."
               exit 1
               ;;
           esac
