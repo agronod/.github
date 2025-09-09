@@ -16,6 +16,9 @@ on:
       coverage:
         default: true
         type: boolean
+      check-image:
+        default: true
+        type: boolean
       enforce-scanning:
         default: false
         type: boolean

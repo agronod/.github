@@ -20,7 +20,9 @@ on:
       check-image:
         default: true
         type: boolean
-
+      enforce-scanning:
+        default: false
+        type: boolean
     secrets:
       github-user:
         description: "Github username for the container registry"
