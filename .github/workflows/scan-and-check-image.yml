@@ -40,10 +40,13 @@ jobs:
           repository: "agronod/trivyignore"
           token: '${{ secrets.github-token }}'
 
-      - name: Check for .trivyignore.yaml
+      - name: Check for repo-specific .trivyignore.yaml
         run: |
-          if [ -f ".trivyignore.yaml" ]; then
-            echo "TRIVY_IGNOREFILE=.trivyignore.yaml" >> $GITHUB_ENV
+          REPO_NAME=$(basename "${{ github.repository }}")
+          IGNORE_FILE="$REPO_NAME/.trivyignore.yaml"
+
+          if [ -f "$IGNORE_FILE" ]; then
+            echo "TRIVY_IGNOREFILE=$IGNORE_FILE" >> $GITHUB_ENV
           fi
 
       - name: Run Trivy vulnerability scanner
