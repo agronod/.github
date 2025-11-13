@@ -41,6 +41,10 @@ on:
       enforce-scanning:
         default: false
         type: boolean
+      imageName:
+        description: "Optional override for the image name (without tag). If not provided, defaults to quay.io/agronod/ghcr.io/<repository>"
+        required: false
+        type: string
     secrets:
       github-user:
         description: "Github username for the container registry"
@@ -82,7 +86,7 @@ jobs:
     uses: ./.github/workflows/build-and-push-image.yml
     with:
       registry-url: "quay.io"
-      image-name: "quay.io/agronod/ghcr.io/${{ github.repository }}"
+      image-name: ${{ inputs.imageName != '' && inputs.imageName || format('quay.io/agronod/ghcr.io/{0}', github.repository) }}
       tag: ${{ needs.next-version.outputs.version }}
       working-directory: ${{ inputs.working-directory }}
       dockerfile: ${{ inputs.dockerfile }}
