@@ -26,6 +26,11 @@ on:
       check-image:
         default: true
         type: boolean
+      dockerfile:
+        description: "The path to the Dockerfile relative to the repository root"
+        type: string
+        required: false
+        default: "Dockerfile"
       image-tag-parameter:
         default: "image.tag"
         type: string
@@ -80,6 +85,7 @@ jobs:
       image-name: "quay.io/agronod/ghcr.io/${{ github.repository }}"
       tag: ${{ needs.next-version.outputs.version }}
       working-directory: ${{ inputs.working-directory }}
+      dockerfile: ${{ inputs.dockerfile }}
     secrets:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
