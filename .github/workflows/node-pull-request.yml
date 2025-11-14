@@ -10,6 +10,14 @@ on:
         description: "Path to the directory containing the Node.js project"
         default: "."
         type: string
+      dockerfile:
+        description: "Path to the Dockerfile relative to the repository root"
+        default: "Dockerfile"
+        type: string
+      imageName:
+        description: "Override the default image name (optional)"
+        type: string
+        required: false
       rhacs-central-endpoint:
         description: "The endpoint URL of the RHACS Central server for authentication."
         type: string
@@ -66,9 +74,10 @@ jobs:
     uses: ./.github/workflows/build-and-push-image.yml
     with:
       registry-url: "quay.io"
-      image-name: "quay.io/agronod/ghcr.io/${{ github.repository }}"
+      image-name: ${{ inputs.imageName != '' && inputs.imageName || format('quay.io/agronod/ghcr.io/{0}', github.repository) }}
       tag: ${{ needs.next-version.outputs.version }}
       working-directory: ${{ inputs.working-directory }}
+      dockerfile: ${{ inputs.dockerfile }}
     secrets:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
