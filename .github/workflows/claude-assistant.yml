@@ -1,0 +1,120 @@
+name: Claude Assistant
+
+on:
+  workflow_call:
+    secrets:
+      claude_code_oauth_token:
+        required: true
+
+jobs:
+  # Interactive @claude mentions in comments, reviews, and issues
+  claude-interactive:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@beta
+        with:
+          claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
+
+          # Enable progress tracking
+          track_progress: true
+
+          # Context loading for all @claude interactions
+          prompt: |
+            Before responding to any request:
+            1) Map the .agents/steering/ structure to discover available documentation
+            2) Read relevant context.md files based on the changes being discussed
+            3) Read CLAUDE.md for overall project guidelines.
+
+  # Automatic PR review with progress tracking
+  claude-pr-review:
+    if: |
+      github.event_name == 'pull_request' &&
+      github.actor != 'claude[bot]' &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: PR Review with Progress Tracking
+        uses: anthropics/claude-code-action@beta
+        with:
+          claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
+
+          # Enable progress tracking
+          track_progress: true
+
+          # Your custom review instructions
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            ## Context Loading
+            Before reviewing, map the .agents/steering/ structure to discover available documentation.
+            Read relevant context.md files based on the PR changes to understand project conventions.
+            Read CLAUDE.md for overall guidelines.
+
+            ## Review Focus Areas
+
+            1. **Repository Scope**
+               - Does this change align with the repo's architectural purpose and boundaries?
+               - Should this code live in a different repo or package?
+               - Is this feature outside the repo's intended scope?
+
+            2. **Code Quality**
+               - Code structure and best practices
+               - Error handling and edge cases
+
+            3. **Security**
+               - Security vulnerabilities
+               - Input sanitization and validation
+
+            4. **Performance**
+               - Performance bottlenecks
+               - Resource efficiency
+
+            5. **Testing**
+               - Test coverage adequacy
+               - Missing test scenarios
+
+            6. **Documentation**
+               - Code documentation
+               - README/API doc updates
+
+            ## Output Style
+            Be direct and concise: state issue + suggested fix.
+            Skip all praise and positive feedback.
+            Only comment on problems or improvements needed.
+            Use inline comments for specific code issues.
+            Use top-level comment only for significant concerns.
+
+          # Tools for comprehensive PR review
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Bash(find:*)"
+
+# When track_progress is enabled:
+# - Creates a tracking comment with progress checkboxes
+# - Includes all PR context (comments, attachments, images)
+# - Updates progress as the review proceeds
+# - Marks as completed when done
