@@ -26,19 +26,19 @@ jobs:
         with:
           fetch-depth: 1
 
-      - uses: anthropics/claude-code-action@beta
+      - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
 
-          # Enable progress tracking
-          track_progress: true
+          # Use sticky comment for consolidated responses
+          use_sticky_comment: true
 
           # Context loading for all @claude interactions
-          prompt: |
-            Before responding to any request:
+          claude_args: |
+            --append-system-prompt "Before responding to any request:
             1) Map the .agents/steering/ structure to discover available documentation
             2) Read relevant context.md files based on the changes being discussed
-            3) Read CLAUDE.md for overall project guidelines.
+            3) Read CLAUDE.md for overall project guidelines."
 
   # Automatic PR review with progress tracking
   claude-pr-review:
@@ -58,14 +58,14 @@ jobs:
           fetch-depth: 1
 
       - name: PR Review with Progress Tracking
-        uses: anthropics/claude-code-action@beta
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
 
-          # Enable progress tracking
+          # Enable progress tracking for automation mode
           track_progress: true
 
-          # Your custom review instructions
+          # Instructions for the PR review
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
@@ -111,10 +111,9 @@ jobs:
 
           # Tools for comprehensive PR review
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Bash(find:*)"
+            --allowedTools mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Bash(find:*)
 
 # When track_progress is enabled:
 # - Creates a tracking comment with progress checkboxes
-# - Includes all PR context (comments, attachments, images)
+# - Preserves all PR context (comments, attachments, images)
 # - Updates progress as the review proceeds
-# - Marks as completed when done
