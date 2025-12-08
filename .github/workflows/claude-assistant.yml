@@ -81,18 +81,33 @@ jobs:
             </focus>
 
             <constraints>
-            - Maximum 200 words total
-            - Only report PROBLEMS - zero positive feedback
-            - Skip: style nitpicks, missing tests, documentation gaps, "nice to have"
-            - If no significant issues: reply "✅ No critical issues" and stop
+            - Maximum 200 words (excluding code blocks)
+            - Zero positive feedback, zero summary paragraphs
+            - Skip: style nitpicks, missing tests, documentation gaps
+            - Every comment MUST reference specific file:line
+            - Every issue MUST include a code suggestion
+            - If no issues: output ONLY "✅ No critical issues"
             </constraints>
 
             <output-format>
-            **[SAFETY|BUG|CONVENTION|SCOPE|PERF]** `file:line` - Problem. Fix.
+            Issues (blocking):
+            **[TYPE]** `file:line` - What's wrong + why it matters.
+            ```suggestion
+            actual code fix
+            ```
+
+            Observations (non-blocking):
+            **[NOTE]** `file:line` - What + why it could become a problem.
             </output-format>
 
             <example>
-            **[BUG]** `api/handler.ts:42` - Null check missing before access. Add guard clause.
+            **[BUG]** `api/handler.ts:42` - No null check before `user.name` access. Will throw TypeError when user is undefined.
+            ```suggestion
+            if (!user) return null;
+            const name = user.name;
+            ```
+
+            **[NOTE]** `CategorySection.tsx:11` - Local interface duplicates shared type from @/types. Changes to shared type won't propagate here, causing drift.
             </example>
 
           # Tools for comprehensive PR review
