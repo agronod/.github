@@ -68,71 +68,70 @@ jobs:
           # Instructions for the PR review
           prompt: |
             <context>
-            Map .agents/steering/ and read ALL relevant context.md files for areas touched by this PR.
-            Read CLAUDE.md for project guidelines. When in doubt, read more steering files rather than fewer.
+            Map .agents/steering/ and read relevant context.md files for areas touched by this PR.
+            Read CLAUDE.md for project guidelines.
             </context>
 
             <focus priority="ordered">
-            1. Safety - Security vulnerabilities, data integrity risks, unsafe operations
-            2. Bugs - Runtime errors, edge cases that will break, logic errors
-            3. Conventions - Code that contradicts patterns in steering context or CLAUDE.md
+            1. Safety - Security vulnerabilities, data integrity risks
+            2. Bugs - Runtime errors, edge cases, logic errors
+            3. Conventions - Contradicts steering context or CLAUDE.md
             4. Scope - Changes that don't belong in this repository
-            5. Performance/Cost - N+1 queries, unbounded loops, expensive operations
+            5. Cost - N+1 queries, unbounded loops, expensive operations
             </focus>
 
-            <output-constraints>
-            - Maximum 200 words (excluding code blocks)
-            - Zero positive feedback, zero summary paragraphs
-            - Skip: style nitpicks, missing tests, documentation gaps
-            - Every comment MUST reference specific file:line
-            </output-constraints>
+            <constraints>
+            - Skip: style nitpicks, missing tests, docs, praise
+            - Use inline comments for file-specific issues (enables GitHub suggestions)
+            - Summary comment only for overall assessment
+            </constraints>
 
-            <output-template>
-            ### Summary
-            One sentence assessing implementation quality (scope, risk, cleanliness).
-            Do NOT describe what the PR does - that's in the PR description.
+            <workflow>
+            1. Read the PR diff and changed files
+            2. For each issue found: post inline comment at the exact line using create_inline_comment tool
+            3. After all inline comments: post one summary comment with overall assessment
+            </workflow>
 
-            ### Issues
-            #### 1. [TYPE] - Issue title
-            File: [filename:line](path/to/file:line)
-            why it matters
+            <inline-comment-format>
+            **[TYPE]** Brief issue title
+
+            Why it matters.
+
             ```suggestion
-            actual code fix
+            corrected code (GitHub will render this as applicable suggestion)
             ```
+            </inline-comment-format>
 
-            ### Minor observations
-            #### 1. Observation title
-            File: [filename:line](path/to/file:line)
-            Why this could become a problem.
-            </output-template>
+            <summary-comment-format>
+            ### Review Summary
+            One sentence: scope, risk level, key concerns.
 
-            <output-example-summary>
-            ### Summary
-            Focused changes with low risk, one bug to fix before merge.            
-            </output-example-summary>
+            **Issues found:** N (linked via inline comments above)
 
-            <output-example-issues>
-            ### Issues
-            #### 1. [BUG] - No null check before user.name access
-            File: [handler.ts:42](api/handler.ts:42)
-            Will throw TypeError when user is undefined.
+            ### Watch
+            Optional. Max 2 items. Non-blocking observations that could drift into problems.
+            - `path/file.ts:99` - Brief concern
+            </summary-comment-format>
+
+            <example-inline-comment>
+            **[BUG]** Null reference on undefined user
+
+            Will throw TypeError when user lookup fails.
+
             ```suggestion
             if (!user) return null;
             const name = user.name;
             ```
-            </output-example-issues>
+            </example-inline-comment>
 
-            <output-example-no-issues>
-            ### Issues
-            ✅ No critical issues
-            </output-example-no-issues>            
+            <example-summary-clean>
+            ### Review Summary
+            Focused changes with low risk.
 
-            <output-example-minor-observations>
-            ### Minor observations
-            #### 1. Local interface duplicates shared type
-            File: [CategorySection.tsx:11](frontend/src/components/controls/CategorySection.tsx:11)
-            Changes to shared type won't propagate here, causing drift.
-            </output-example-minor-observations>
+            **Issues found:** 0
+
+            ✅ No concerns.
+            </example-summary-clean>
 
           # Tools for comprehensive PR review
           claude_args: |
