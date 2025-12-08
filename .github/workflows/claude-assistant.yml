@@ -98,8 +98,10 @@ jobs:
             Why it matters.
 
             ```suggestion
-            corrected code (GitHub will render this as applicable suggestion)
+            replacement lines only - must match exact line count being replaced
             ```
+
+            CRITICAL: Suggestions replace the commented lines exactly. Include ONLY the replacement code, not surrounding context. If adding 3 lines to replace 1, the suggestion must contain exactly those 3 new lines.
             </inline-comment-format>
 
             <summary-comment-format>
@@ -114,6 +116,8 @@ jobs:
             </summary-comment-format>
 
             <example-inline-comment>
+            Comment on line: `const name = user.name;`
+
             **[BUG]** Null reference on undefined user
 
             Will throw TypeError when user lookup fails.
@@ -122,6 +126,8 @@ jobs:
             if (!user) return null;
             const name = user.name;
             ```
+
+            (Replaces 1 line with 2 lines - suggestion contains exactly the replacement)
             </example-inline-comment>
 
             <example-summary-clean>
