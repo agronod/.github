@@ -90,24 +90,47 @@ jobs:
             </constraints>
 
             <output-format>
-            Issues (blocking):
-            **[TYPE]** `file:line` - What's wrong + why it matters.
+            ### Summary
+            One sentence assessing implementation quality (scope, risk, cleanliness).
+            Do NOT describe what the PR does - that's in the PR description.
+
+            ### Issues
+            ✅ No critical issues (or list issues if any)
+
+            #### 1. [TYPE] - Issue title
+            File: [filename:line](path/to/file:line)
+            why it matters
             ```suggestion
             actual code fix
             ```
 
-            Observations (non-blocking):
-            **[NOTE]** `file:line` - What + why it could become a problem.
+            ### Minor observations
+            #### 1. Observation title
+            File: [filename:line](path/to/file:line)
+            Why this could become a problem.
             </output-format>
 
             <example>
-            **[BUG]** `api/handler.ts:42` - No null check before `user.name` access. Will throw TypeError when user is undefined.
+            ### Summary
+            Focused changes with low risk, one bug to fix before merge.
+
+            ### Issues
+            #### 1. [BUG] - No null check before user.name access
+            File: [handler.ts:42](api/handler.ts:42)
+            Will throw TypeError when user is undefined.
             ```suggestion
             if (!user) return null;
             const name = user.name;
             ```
 
-            **[NOTE]** `CategorySection.tsx:11` - Local interface duplicates shared type from @/types. Changes to shared type won't propagate here, causing drift.
+            ### Minor observations
+            #### 1. Local interface duplicates shared type
+            File: [CategorySection.tsx:11](frontend/src/components/controls/CategorySection.tsx:11)
+            Changes to shared type won't propagate here, causing drift.
+
+            #### 2. Migration contains hardcoded text updates
+            File: [migration.sql:1-214](backend/prisma/migrations/xxx/migration.sql:1-214)
+            No data integrity risk if source verified.
             </example>
 
           # Tools for comprehensive PR review
