@@ -67,47 +67,33 @@ jobs:
 
           # Instructions for the PR review
           prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            <context>
+            Map .agents/steering/ and read ALL relevant context.md files for areas touched by this PR.
+            Read CLAUDE.md for project guidelines. When in doubt, read more steering files rather than fewer.
+            </context>
 
-            ## Context Loading
-            Before reviewing, map the .agents/steering/ structure to discover available documentation.
-            Read relevant context.md files based on the PR changes to understand project conventions.
-            Read CLAUDE.md for overall guidelines.
+            <focus priority="ordered">
+            1. Safety - Security vulnerabilities, data integrity risks, unsafe operations
+            2. Bugs - Runtime errors, edge cases that will break, logic errors
+            3. Conventions - Code that contradicts patterns in steering context or CLAUDE.md
+            4. Scope - Changes that don't belong in this repository
+            5. Performance/Cost - N+1 queries, unbounded loops, expensive operations
+            </focus>
 
-            ## Review Focus Areas
+            <constraints>
+            - Maximum 200 words total
+            - Only report PROBLEMS - zero positive feedback
+            - Skip: style nitpicks, missing tests, documentation gaps, "nice to have"
+            - If no significant issues: reply "✅ No critical issues" and stop
+            </constraints>
 
-            1. **Repository Scope**
-               - Does this change align with the repo's architectural purpose and boundaries?
-               - Should this code live in a different repo or package?
-               - Is this feature outside the repo's intended scope?
+            <output-format>
+            **[SAFETY|BUG|CONVENTION|SCOPE|PERF]** `file:line` - Problem. Fix.
+            </output-format>
 
-            2. **Code Quality**
-               - Code structure and best practices
-               - Error handling and edge cases
-
-            3. **Security**
-               - Security vulnerabilities
-               - Input sanitization and validation
-
-            4. **Performance**
-               - Performance bottlenecks
-               - Resource efficiency
-
-            5. **Testing**
-               - Test coverage adequacy
-               - Missing test scenarios
-
-            6. **Documentation**
-               - Code documentation
-               - README/API doc updates
-
-            ## Output Style
-            Be direct and concise: state issue + suggested fix.
-            Skip all praise and positive feedback.
-            Only comment on problems or improvements needed.
-            Use inline comments for specific code issues.
-            Use top-level comment only for significant concerns.
+            <example>
+            **[BUG]** `api/handler.ts:42` - Null check missing before access. Add guard clause.
+            </example>
 
           # Tools for comprehensive PR review
           claude_args: |
