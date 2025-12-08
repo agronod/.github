@@ -80,23 +80,19 @@ jobs:
             5. Performance/Cost - N+1 queries, unbounded loops, expensive operations
             </focus>
 
-            <constraints>
+            <output-constraints>
             - Maximum 200 words (excluding code blocks)
             - Zero positive feedback, zero summary paragraphs
             - Skip: style nitpicks, missing tests, documentation gaps
             - Every comment MUST reference specific file:line
-            - Every issue MUST include a code suggestion
-            - If no issues: output ONLY "✅ No critical issues"
-            </constraints>
+            </output-constraints>
 
-            <output-format>
+            <output-template>
             ### Summary
             One sentence assessing implementation quality (scope, risk, cleanliness).
             Do NOT describe what the PR does - that's in the PR description.
 
             ### Issues
-            ✅ No critical issues (or list issues if any)
-
             #### 1. [TYPE] - Issue title
             File: [filename:line](path/to/file:line)
             why it matters
@@ -108,12 +104,14 @@ jobs:
             #### 1. Observation title
             File: [filename:line](path/to/file:line)
             Why this could become a problem.
-            </output-format>
+            </output-template>
 
-            <example>
+            <output-example-summary>
             ### Summary
-            Focused changes with low risk, one bug to fix before merge.
+            Focused changes with low risk, one bug to fix before merge.            
+            </output-example-summary>
 
+            <output-example-issues>
             ### Issues
             #### 1. [BUG] - No null check before user.name access
             File: [handler.ts:42](api/handler.ts:42)
@@ -122,16 +120,19 @@ jobs:
             if (!user) return null;
             const name = user.name;
             ```
+            </output-example-issues>
 
+            <output-example-no-issues>
+            ### Issues
+            ✅ No critical issues
+            </output-example-no-issues>            
+
+            <output-example-minor-observations>
             ### Minor observations
             #### 1. Local interface duplicates shared type
             File: [CategorySection.tsx:11](frontend/src/components/controls/CategorySection.tsx:11)
             Changes to shared type won't propagate here, causing drift.
-
-            #### 2. Migration contains hardcoded text updates
-            File: [migration.sql:1-214](backend/prisma/migrations/xxx/migration.sql:1-214)
-            No data integrity risk if source verified.
-            </example>
+            </output-example-minor-observations>
 
           # Tools for comprehensive PR review
           claude_args: |
