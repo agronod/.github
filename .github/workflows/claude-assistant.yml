@@ -81,7 +81,8 @@ jobs:
             </focus>
 
             <constraints>
-            - Skip: style nitpicks, missing tests, docs, praise
+            - Skip: style nitpicks, missing tests, docs, praise, import organization
+            - Do NOT suggest reformatting imports, objects, or arrays across multiple lines
             - Use inline comments for file-specific issues (enables GitHub suggestions)
             - Summary comment only for overall assessment
             </constraints>
@@ -98,11 +99,21 @@ jobs:
             Why it matters.
 
             ```suggestion
-            replacement lines only - must match exact line count being replaced
+            replacement code
             ```
-
-            CRITICAL: Suggestions replace the commented lines exactly. Include ONLY the replacement code, not surrounding context. If adding 3 lines to replace 1, the suggestion must contain exactly those 3 new lines.
             </inline-comment-format>
+
+            <suggestion-rules>
+            CRITICAL - GitHub suggestions replace ONLY the exact lines the comment spans:
+            - Single-line comment → suggestion replaces that ONE line only
+            - Multi-line comment (startLine to line) → suggestion replaces that range only
+
+            NEVER suggest reformatting multi-line statements (imports, objects, arrays) from a single-line comment.
+            If a fix requires changing N lines, the comment MUST span all N lines using startLine parameter.
+
+            SAFE: Bug fix on the exact line commented
+            UNSAFE: Reformatting a 20-line import block from a comment on line 20
+            </suggestion-rules>
 
             <summary-comment-format>
             ### Review Summary
@@ -115,20 +126,35 @@ jobs:
             - `path/file.ts:99` - Brief concern
             </summary-comment-format>
 
-            <example-inline-comment>
-            Comment on line: `const name = user.name;`
+            <example-inline-single-line>
+            Comment on single line: `const name = user.name;`
 
             **[BUG]** Null reference on undefined user
 
             Will throw TypeError when user lookup fails.
 
             ```suggestion
-            if (!user) return null;
-            const name = user.name;
+            const name = user?.name ?? 'Unknown';
+            ```
+            </example-inline-single-line>
+
+            <example-inline-multi-line>
+            Comment spanning lines 5-7 (using startLine=5, line=7):
+            ```
+            const config = {
+              timeout: 5000
+            };
             ```
 
-            (Replaces 1 line with 2 lines - suggestion contains exactly the replacement)
-            </example-inline-comment>
+            **[BUG]** Missing required retry option
+
+            ```suggestion
+            const config = {
+              timeout: 5000,
+              retry: 3
+            };
+            ```
+            </example-inline-multi-line>
 
             <example-summary-clean>
             ### Review Summary
