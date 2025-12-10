@@ -50,18 +50,6 @@
 #       uses: <org>/actions/.github/workflows/ci-claude-assistant.yml@v1
 #       secrets:
 #         claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-#
-# STEERING CONTEXT (OPTIONAL)
-# ===========================
-# Claude automatically reads project context from:
-# - CLAUDE.md in the repository root for project guidelines
-# - .agents/steering/ directory for domain-specific documentation
-#
-# Structure your steering docs to help Claude understand your codebase:
-#   .agents/steering/
-#   ├── api/context.md          # API conventions
-#   ├── frontend/context.md     # UI patterns
-#   └── testing/context.md      # Test requirements
 
 name: Claude Assistant
 
