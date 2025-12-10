@@ -1,5 +1,3 @@
-# deprecated: use .github/workflows/claude-assistant-ci.yml instead
-
 name: Claude Assistant
 
 on:
