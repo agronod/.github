@@ -84,4 +84,4 @@ Uses JSONPath to update Helm parameter values:
 
 - Key files: `.github/workflows/promote-application.yml`
 - External: `agronod/application-gitops` repository
-- Related contexts: `../../versioning/overview/context.md`
+- Related contexts: `../../versioning/semver/context.md`

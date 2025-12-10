@@ -88,4 +88,4 @@ jobs:
 ## References
 
 - Key files: `.github/workflows/node-ci.yml`, `.github/workflows/python-ci.yml`
-- Related contexts: `../pr-validation/context.md`, `../../versioning/overview/context.md`
+- Related contexts: `../pr-validation/context.md`, `../../versioning/semver/context.md`

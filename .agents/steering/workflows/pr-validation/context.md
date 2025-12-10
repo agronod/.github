@@ -74,4 +74,4 @@ Example: v1.2.3-123-abc1234
 ## References
 
 - Key files: `.github/workflows/node-pull-request.yml`, `.github/workflows/python-pull-request.yml`
-- Related contexts: `../ci-pipelines/context.md`, `../../versioning/overview/context.md`
+- Related contexts: `../ci-pipelines/context.md`, `../../versioning/semver/context.md`

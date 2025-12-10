@@ -85,4 +85,4 @@ Build arguments are passed via secret and written to a file:
 ## References
 
 - Key files: `.github/workflows/build-and-push-image-v2.yml`
-- Related contexts: `../security/context.md`, `../../versioning/overview/context.md`
+- Related contexts: `../scanning/context.md`, `../../versioning/semver/context.md`

@@ -1,21 +1,42 @@
 # AI Context Documentation
-Generated: 2025-12-10 09:28
-Commit: 5b2ec4888d766dfc1a8ea23c672b8cd5b017d70b
-Mode: initial
+Generated: 2025-12-10 10:25
+Commit: 7ce0351
+Mode: incremental (restructure)
 
 ## Last Updated
-- Created: workflows, containers, deployment, versioning, gotchas
-- Structure: Initial creation of hierarchical documentation
-- Files analyzed: 19 workflow files, 4 ai-docs files
+- Restructured: Renamed generic folders to specific names for better searchability
+- Added: workflows/claude-assistant (Claude AI review and interaction patterns)
+- Changes: overview→building, security→scanning, overview→gitops, overview→semver, common→pitfalls
 
 ## Structure
-- **workflows/ci-pipelines**: Language-specific CI pipeline patterns (Node, Python, .NET, Go)
-- **workflows/pr-validation**: Pull request validation workflows and pre-release versioning
-- **containers/overview**: Docker image building, registry configuration, build patterns
-- **containers/security**: Trivy vulnerability scanning and security policies
-- **deployment/overview**: GitOps deployment model, environment mapping, promotion workflow
-- **versioning/overview**: Semantic versioning, conventional commits, release creation
-- **gotchas/common**: Anti-patterns, common mistakes, troubleshooting tips
+
+```
+.agents/steering/
+├── containers/
+│   ├── building/    → Docker build, registry, image naming
+│   └── scanning/    → Trivy vulnerability scanning
+├── deployment/
+│   └── gitops/      → ArgoCD, environment mapping, promotion
+├── gotchas/
+│   └── pitfalls/    → Anti-patterns, common mistakes
+├── versioning/
+│   └── semver/      → Conventional commits, tags, releases
+└── workflows/
+    ├── ci-pipelines/      → Language CI patterns (Node, Python, .NET, Go)
+    ├── pr-validation/     → PR checks, pre-release versioning
+    └── claude-assistant/  → Claude AI review configuration
+```
+
+## Selective Reading Guide
+
+| Task | Read these contexts |
+|------|---------------------|
+| CI/CD work | `workflows/ci-pipelines/` + `versioning/semver/` |
+| PR workflows | `workflows/pr-validation/` + `versioning/semver/` |
+| Container builds | `containers/building/` + `containers/scanning/` |
+| Deployments | `deployment/gitops/` + `versioning/semver/` |
+| Claude config | `workflows/claude-assistant/` |
+| Troubleshooting | `gotchas/pitfalls/` |
 
 ## Usage
 Load with context-prime skill for task-specific context.
