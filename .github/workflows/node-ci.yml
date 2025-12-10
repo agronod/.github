@@ -1,3 +1,44 @@
+# Node.js CI/CD Pipeline
+#
+# Complete CI/CD workflow for Node.js applications. Orchestrates testing,
+# versioning, container builds, security scanning, release creation, and
+# GitOps-based deployment promotion.
+#
+# PIPELINE STAGES
+# ===============
+# 1. test         - Run npm test (optional, default: enabled)
+# 2. next-version - Calculate semantic version from conventional commits
+# 3. build        - Build and push container image to Quay.io
+# 4. scan         - Trivy vulnerability scan (optional, default: enabled)
+# 5. release      - Create GitHub release with changelog
+# 6. promote      - Update GitOps repo to trigger deployment
+#
+# VERSIONING
+# ==========
+# Uses conventional commits to determine version bumps:
+# - feat: → minor version bump (1.0.0 → 1.1.0)
+# - fix:  → patch version bump (1.0.0 → 1.0.1)
+# - BREAKING CHANGE: → major version bump (1.0.0 → 2.0.0)
+#
+# USAGE EXAMPLE
+# =============
+#   name: CI/CD
+#   on:
+#     push:
+#       branches: [main]
+#
+#   jobs:
+#     build:
+#       uses: <org>/.github/.github/workflows/node-ci.yml@main
+#       with:
+#         application-name: my-service
+#         application-folder: services
+#       secrets:
+#         github-user: ${{ secrets.GH_USER }}
+#         github-token: ${{ secrets.GH_TOKEN }}
+#         registry-username: ${{ secrets.QUAY_USERNAME }}
+#         registry-password: ${{ secrets.QUAY_PASSWORD }}
+
 name: Node CI
 
 on:

@@ -1,3 +1,19 @@
+# Node.js Test Runner
+#
+# Atomic workflow for running Node.js tests. Installs dependencies via npm ci
+# and executes npm test. Designed to be called by orchestration workflows.
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     test:
+#       uses: <org>/.github/.github/workflows/node-test.yml@main
+#       with:
+#         node-version: "20.15.0"
+#         working-directory: ./app
+#       secrets:
+#         github-token: ${{ secrets.GH_TOKEN }}
+
 name: Test Node.js application
 
 on:

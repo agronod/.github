@@ -1,12 +1,67 @@
-# DEPRECATED - Use claude-assistant-ci.yml instead
+# Claude AI Assistant for GitHub Repositories
 #
-# This workflow has been superseded by claude-assistant-ci.yml which provides
-# improved documentation and the same functionality.
+# Reusable workflow providing AI-powered assistance through two modes:
+# - Interactive @claude mentions in issues, comments, and PR reviews
+# - Automatic PR review with inline comments and GitHub suggestions
 #
-# MIGRATION
-# =========
-# Update your caller workflow to reference the new file:
-#   uses: <org>/.github/.github/workflows/claude-assistant-ci.yml@main
+# JOBS
+# ====
+# claude-interactive: Responds to @claude mentions anywhere in the repository.
+#   Triggers: issue_comment, pull_request_review_comment, pull_request_review, issues
+#   Uses sticky comments to consolidate responses in a single thread.
+#
+# claude-pr-review: Automatic code review on every pull request.
+#   Triggers: pull_request (opened, synchronize, reopened)
+#   Posts inline comments with GitHub suggestions for actionable fixes.
+#   Focus areas: security, bugs, conventions, scope creep, performance.
+#
+# SETUP
+# =====
+# 1. Generate a Claude Code OAuth token:
+#    - Visit https://console.anthropic.com/ → API Keys
+#    - Or use Claude Code CLI: `claude auth`
+#
+# 2. Add the token as a repository secret:
+#    - Settings → Secrets and variables → Actions → New repository secret
+#    - Name: CLAUDE_CODE_OAUTH_TOKEN
+#    - Value: <your token>
+#
+# 3. Create a caller workflow in your repository (see usage example below)
+#
+# USAGE EXAMPLE
+# =============
+# Create .github/workflows/claude-assistant.yml in your repository:
+#
+#   name: Claude Assistant
+#   on:
+#     issue_comment:
+#       types: [created]
+#     pull_request_review_comment:
+#       types: [created]
+#     pull_request_review:
+#       types: [submitted]
+#     issues:
+#       types: [opened, edited]
+#     pull_request:
+#       types: [opened, synchronize, reopened]
+#
+#   jobs:
+#     claude:
+#       uses: <org>/actions/.github/workflows/ci-claude-assistant.yml@v1
+#       secrets:
+#         claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+#
+# STEERING CONTEXT (OPTIONAL)
+# ===========================
+# Claude automatically reads project context from:
+# - CLAUDE.md in the repository root for project guidelines
+# - .agents/steering/ directory for domain-specific documentation
+#
+# Structure your steering docs to help Claude understand your codebase:
+#   .agents/steering/
+#   ├── api/context.md          # API conventions
+#   ├── frontend/context.md     # UI patterns
+#   └── testing/context.md      # Test requirements
 
 name: Claude Assistant
 

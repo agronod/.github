@@ -1,4 +1,33 @@
-name: Python CI
+# Python Pull Request Validation
+#
+# CI workflow for validating Python pull requests. Runs pytest, builds a
+# preview container image with PR-specific tag, and performs security scanning.
+# Does NOT create releases or promote to environments.
+#
+# IMAGE TAGGING
+# =============
+# PR images are tagged with: <base-version>-<pr-number>-<short-sha>
+# Example: 1.2.3-42-abc1234
+#
+# USAGE EXAMPLE
+# =============
+#   name: PR Validation
+#   on:
+#     pull_request:
+#       branches: [main]
+#
+#   jobs:
+#     validate:
+#       uses: <org>/.github/.github/workflows/python-pull-request.yml@main
+#       with:
+#         python-version: "3.10"
+#       secrets:
+#         github-user: ${{ secrets.GH_USER }}
+#         github-token: ${{ secrets.GH_TOKEN }}
+#         registry-username: ${{ secrets.QUAY_USERNAME }}
+#         registry-password: ${{ secrets.QUAY_PASSWORD }}
+
+name: Python Pull Request
 
 on:
   workflow_call:

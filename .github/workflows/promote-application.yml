@@ -1,3 +1,40 @@
+# GitOps Application Promoter
+#
+# Atomic workflow for promoting applications via GitOps. Updates the image tag
+# in the application-gitops repository to trigger ArgoCD deployment.
+#
+# ENVIRONMENT MAPPING
+# ===================
+# Branch-based (default):
+# - develop → dev environment (dev cluster)
+# - release → test environment (dev cluster)
+# - main    → staging environment (prod cluster)
+#
+# Environment input overrides branch detection.
+#
+# CLUSTER MAPPING
+# ===============
+# - dev, test       → dev cluster
+# - staging, prod   → prod cluster
+#
+# GITOPS REPOSITORY
+# =================
+# Updates: agronod/application-gitops
+# Path pattern: <cluster>-elastisys/<env>/<app-folder>/<app-name>.yaml
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     promote:
+#       uses: <org>/.github/.github/workflows/promote-application.yml@main
+#       with:
+#         tag: "1.2.3"
+#         application-name: my-service
+#         application-folder: services
+#         environment: staging  # optional override
+#       secrets:
+#         github-token: ${{ secrets.GH_TOKEN }}
+
 name: Promote Agronod application
 
 on:

@@ -1,3 +1,27 @@
+# Go Test Runner
+#
+# Atomic workflow for running Go tests. Downloads dependencies and executes
+# tests with optional coverage reporting and race detection.
+# Designed to be called by orchestration workflows.
+#
+# COVERAGE
+# ========
+# When coverage is enabled (default), runs with:
+# - Race detection (-race)
+# - Coverage profile output (-coverprofile)
+# - Atomic coverage mode (-covermode=atomic)
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     test:
+#       uses: <org>/.github/.github/workflows/go-test.yml@main
+#       with:
+#         go-version: "1.21"
+#         coverage: true
+#       secrets:
+#         github-token: ${{ secrets.GH_TOKEN }}
+
 name: Test Go application
 
 on:

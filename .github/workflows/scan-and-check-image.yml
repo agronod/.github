@@ -1,3 +1,33 @@
+# Container Image Security Scanner
+#
+# Atomic workflow for scanning container images for vulnerabilities using Trivy.
+# Supports repo-specific ignore files from the centralized trivyignore repository.
+#
+# VULNERABILITY SCANNING
+# ======================
+# - Scanner: Aquasecurity Trivy
+# - Severity levels: CRITICAL, HIGH
+# - Ignore files: Loaded from agronod/trivyignore repo
+#
+# TRIVYIGNORE
+# ===========
+# Per-repo ignore files can be placed in agronod/trivyignore:
+#   <repo-name>/.trivyignore.yaml
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     scan:
+#       uses: <org>/.github/.github/workflows/scan-and-check-image.yml@main
+#       with:
+#         image: "quay.io/agronod/my-app:1.2.3"
+#         check-image: true
+#         enforce-scanning: false
+#       secrets:
+#         registry-username: ${{ secrets.QUAY_USERNAME }}
+#         registry-password: ${{ secrets.QUAY_PASSWORD }}
+#         github-token: ${{ secrets.GH_TOKEN }}
+
 name: Scanning and check image
 
 on:

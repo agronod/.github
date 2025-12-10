@@ -1,3 +1,34 @@
+# Container Image Builder
+#
+# Atomic workflow for building and pushing container images to a registry.
+# Uses Docker Buildx with GitHub Actions cache for efficient builds.
+# Designed to be called by orchestration workflows.
+#
+# FEATURES
+# ========
+# - Multi-stage Docker build support
+# - GitHub Actions build cache (type=gha)
+# - Configurable build arguments and secrets
+# - Working directory support for monorepos
+#
+# OUTPUTS
+# =======
+# - image: Full image reference (registry/name:tag)
+# - tag: Image tag only
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     build:
+#       uses: <org>/.github/.github/workflows/build-and-push-image.yml@main
+#       with:
+#         registry-url: "quay.io"
+#         image-name: "quay.io/agronod/my-app"
+#         tag: "1.2.3"
+#       secrets:
+#         registry-username: ${{ secrets.QUAY_USERNAME }}
+#         registry-password: ${{ secrets.QUAY_PASSWORD }}
+
 name: Build and push image
 
 on:

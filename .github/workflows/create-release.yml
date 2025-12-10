@@ -1,3 +1,23 @@
+# GitHub Release Creator
+#
+# Atomic workflow for creating GitHub releases with changelog.
+# Determines pre-release status based on branch (main = stable release).
+#
+# RELEASE TYPE
+# ============
+# - main branch: Creates stable release (prerelease: false)
+# - Other branches: Creates pre-release (prerelease: true)
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     release:
+#       uses: <org>/.github/.github/workflows/create-release.yml@main
+#       with:
+#         tag: "v1.2.3"
+#         version: "1.2.3"
+#         changelog: "## Changes\n- Feature A\n- Bug fix B"
+
 name: Create Release
 
 on:

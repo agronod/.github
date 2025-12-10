@@ -1,3 +1,20 @@
+# Python Test Runner
+#
+# Atomic workflow for running Python tests. Installs dependencies from
+# requirements.txt and executes pytest.
+# Designed to be called by orchestration workflows.
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     test:
+#       uses: <org>/.github/.github/workflows/python-test.yml@main
+#       with:
+#         python-version: "3.10"
+#       secrets:
+#         github-user: ${{ secrets.GH_USER }}
+#         github-token: ${{ secrets.GH_TOKEN }}
+
 name: Test python application
 
 on:

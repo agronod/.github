@@ -1,3 +1,42 @@
+# Semantic Version Calculator
+#
+# Atomic workflow for calculating the next semantic version based on
+# conventional commits. Uses mathieudutour/github-tag-action for version
+# determination and tag creation.
+#
+# VERSION FORMATS
+# ===============
+# Main branch builds:
+#   - Creates git tag (e.g., v1.2.3)
+#   - Returns version (1.2.3) and tag (v1.2.3)
+#
+# Pull request builds:
+#   - Does NOT create git tag
+#   - Returns PR-specific version: <base>-<pr-number>-<short-sha>
+#   - Example: 1.2.3-42-abc1234
+#
+# CONVENTIONAL COMMITS
+# ====================
+# - feat: → minor version bump
+# - fix:  → patch version bump
+# - BREAKING CHANGE: → major version bump
+#
+# OUTPUTS
+# =======
+# - version: Semantic version (e.g., 1.2.3 or 1.2.3-42-abc1234)
+# - tag: Git tag (e.g., v1.2.3)
+# - changelog: Generated changelog from commits
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     version:
+#       uses: <org>/.github/.github/workflows/next-version.yaml@main
+#       with:
+#         is-pull-request: false
+#       secrets:
+#         github-token: ${{ secrets.GH_TOKEN }}
+
 name: Next version
 on:
   workflow_call:
