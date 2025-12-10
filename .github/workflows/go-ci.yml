@@ -1,3 +1,46 @@
+# Go CI/CD Pipeline
+#
+# Complete CI/CD workflow for Go applications. Orchestrates testing,
+# versioning, container builds, security scanning, release creation, and
+# GitOps-based deployment promotion.
+#
+# PIPELINE STAGES
+# ===============
+# 1. test         - Run go test with race detection and coverage (optional)
+# 2. next-version - Calculate semantic version from conventional commits
+# 3. build        - Build and push container image to Quay.io
+# 4. scan         - Trivy vulnerability scan (optional, default: enabled)
+# 5. release      - Create GitHub release with changelog
+# 6. promote      - Update GitOps repo to trigger deployment (optional)
+#
+# OUTPUTS
+# =======
+# This workflow exposes outputs for downstream consumers:
+# - version: Calculated semantic version (e.g., 1.2.3)
+# - tag: Git tag (e.g., v1.2.3)
+# - changelog: Generated changelog from commits
+# - image: Full container image reference
+#
+# USAGE EXAMPLE
+# =============
+#   name: CI/CD
+#   on:
+#     push:
+#       branches: [main]
+#
+#   jobs:
+#     build:
+#       uses: <org>/.github/.github/workflows/go-ci.yml@main
+#       with:
+#         go-version: "1.21"
+#         application-name: my-service
+#         application-folder: services
+#       secrets:
+#         github-user: ${{ secrets.GH_USER }}
+#         github-token: ${{ secrets.GH_TOKEN }}
+#         registry-username: ${{ secrets.QUAY_USERNAME }}
+#         registry-password: ${{ secrets.QUAY_PASSWORD }}
+
 name: Go CI
 
 on:

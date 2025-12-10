@@ -1,3 +1,33 @@
+# Container Image Builder V2
+#
+# Atomic workflow for building and pushing container images to a registry.
+# Improved version with automatic image name derivation from repository.
+# Uses Docker Buildx with GitHub Actions cache for efficient builds.
+#
+# IMAGE NAMING
+# ============
+# If image-name is not provided, defaults to:
+#   <image-repository>/<github-repository>:<tag>
+# If image-name is provided:
+#   <image-repository>/agronod/<image-name>:<tag>
+#
+# OUTPUTS
+# =======
+# - image: Full image reference (registry/name:tag)
+# - tag: Image tag only
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     build:
+#       uses: <org>/.github/.github/workflows/build-and-push-image-v2.yml@main
+#       with:
+#         registry-url: "quay.io"
+#         tag: "1.2.3"
+#       secrets:
+#         registry-username: ${{ secrets.QUAY_USERNAME }}
+#         registry-password: ${{ secrets.QUAY_PASSWORD }}
+
 name: Build and push image V2
 
 on:

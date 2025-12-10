@@ -1,3 +1,27 @@
+# .NET Test Runner
+#
+# Atomic workflow for running .NET tests. Restores dependencies, builds in
+# Release configuration, and runs tests with configurable filtering.
+# Designed to be called by orchestration workflows.
+#
+# TEST FILTERING
+# ==============
+# Use test-filter input to control which tests run:
+# - "Category!=e2e" - Exclude e2e tests (common default)
+# - "FullyQualifiedName~UnitTests" - Run only unit tests
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     test:
+#       uses: <org>/.github/.github/workflows/dotnet-test.yml@main
+#       with:
+#         dotnet-version: "8.0"
+#         test-filter: "Category!=e2e"
+#       secrets:
+#         github-user: ${{ secrets.GH_USER }}
+#         github-token: ${{ secrets.GH_TOKEN }}
+
 name: Test .NET application
 
 on:

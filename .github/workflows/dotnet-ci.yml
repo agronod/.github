@@ -1,3 +1,43 @@
+# .NET CI/CD Pipeline
+#
+# Complete CI/CD workflow for .NET applications. Orchestrates testing,
+# versioning, container builds, security scanning, release creation, and
+# GitOps-based deployment promotion.
+#
+# PIPELINE STAGES
+# ===============
+# 1. test         - Run dotnet test with configurable filter (optional)
+# 2. next-version - Calculate semantic version from conventional commits
+# 3. build        - Build and push container image to Quay.io
+# 4. scan         - Trivy vulnerability scan (optional, default: enabled)
+# 5. release      - Create GitHub release with changelog
+# 6. promote      - Update GitOps repo to trigger deployment
+#
+# TEST FILTERING
+# ==============
+# Default filter excludes e2e tests: "Category!=e2e"
+# Override with test-filter input for custom filtering.
+#
+# USAGE EXAMPLE
+# =============
+#   name: CI/CD
+#   on:
+#     push:
+#       branches: [main]
+#
+#   jobs:
+#     build:
+#       uses: <org>/.github/.github/workflows/dotnet-ci.yml@main
+#       with:
+#         dotnet-version: "8.0"
+#         application-name: my-service
+#         application-folder: services
+#       secrets:
+#         github-user: ${{ secrets.GH_USER }}
+#         github-token: ${{ secrets.GH_TOKEN }}
+#         registry-username: ${{ secrets.QUAY_USERNAME }}
+#         registry-password: ${{ secrets.QUAY_PASSWORD }}
+
 name: Dotnet CI
 
 on:

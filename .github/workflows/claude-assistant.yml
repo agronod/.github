@@ -1,4 +1,12 @@
-# deprecated: use .github/workflows/claude-assistant-ci.yml instead
+# DEPRECATED - Use claude-assistant-ci.yml instead
+#
+# This workflow has been superseded by claude-assistant-ci.yml which provides
+# improved documentation and the same functionality.
+#
+# MIGRATION
+# =========
+# Update your caller workflow to reference the new file:
+#   uses: <org>/.github/.github/workflows/claude-assistant-ci.yml@main
 
 name: Claude Assistant
 
