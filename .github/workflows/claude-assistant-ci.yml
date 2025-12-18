@@ -298,23 +298,28 @@ jobs:
             ', steps.context.outputs.steering_tree) || '' }}
 
             <focus priority="ordered">
+            ALWAYS inline comment (with fix):
             1. Safety - Security vulnerabilities, data integrity risks
             2. Bugs - Runtime errors, edge cases, logic errors
-            3. Conventions - Contradicts project conventions (steering docs, CLAUDE.md)
-            4. Scope - Changes that don't belong in this repository
-            5. Cost - N+1 queries, unbounded loops, expensive operations
+
+            Inline comment ONLY if severe:
+            3. Conventions - Only if it clearly violates project conventions
+            4. Scope - Only if it absolutely doesn't belong in this repo
+            5. Cost - Only if it's a major performance issue (N+1, unbounded loops)
+
+            Minor issues: text output only, no inline comment
             </focus>
 
             <rules>
             - Skip: style nitpicks, missing tests, documentation gaps
-            - ALL issues get inline comments at the exact code line
-            - Summary comment: just overview + issue count (no issue details)
+            - Safety/Bugs: always inline comment with suggested fix
+            - Conventions/Scope/Cost: inline comment only if severe, otherwise text output
             </rules>
 
             <critical>
             Hard prohibitions - NEVER violate:
-            - NO positive commentary anywhere (no praise, "good job", compliments, positive observations)
-            - NO duplicating: inline issues must NOT appear in summary (show count only)
+            - NO positive commentary (no praise, compliments, or positive observations)
+            - NO inline comments for minor issues - use text output instead
             - NO reviewing outside commit range in incremental mode
             - NEVER guess file contents - always read first
             </critical>
@@ -324,87 +329,52 @@ jobs:
             gh pr view: Check existing comments before posting duplicates
             Read: When diff context insufficient (need full file)
             Glob: Find related files that might be affected by changes
-            mcp__github_inline_comment: ALL issues - post at exact line with suggested fix
-            gh pr comment: Summary ONLY - posted once after all inline comments
+            mcp__github_inline_comment: Safety, Bugs, and severe Conventions/Scope/Cost only
             </tool-usage>
 
             <workflow>
             1. Read project context (steering docs if present)
             2. Get PR diff using gh pr diff
-            3. For each issue found: post inline comment at exact line
-            4. Post one summary comment with overview + count
+            3. Safety/Bugs: post inline comment with fix
+            4. Conventions/Scope/Cost: inline comment only if severe
+            5. Minor observations: text output only
             </workflow>
 
             <success-criteria>
-            - Every issue has inline comment at the relevant code line
-            - Summary shows count only (no issue details)
+            - Safety and Bug issues always have inline comments
+            - Minor issues appear in text output, not as inline comments
             - Zero positive commentary
             - Incremental reviews stay within commit range
             </success-criteria>
 
             <output-format>
-            INLINE COMMENT (for ALL issues):
+            INLINE COMMENT (Safety, Bugs, severe issues only):
             Post using mcp__github_inline_comment at the exact line.
 
             Format:
             ```
-            **[TYPE]** Short title
-
             One sentence explanation.
 
-            **Suggested fix:**
+            **Suggestion:**
             ```lang
             corrected code
             ```
             ```
 
-            TYPE is one of: SAFETY, BUG, CONVENTION, SCOPE, COST
-
             Example:
             ```
-            **[BUG]** Null reference on undefined user
-
             Will throw TypeError when user lookup fails.
 
-            **Suggested fix:**
+            **Suggestion:**
             ```ts
             const name = user?.name ?? 'Unknown';
             ```
-            ```
-
-            ---
-
-            SUMMARY COMMENT (posted once after all inline comments):
-            Post using gh pr comment.
-
-            Format:
-            ```
-            ### Review Summary
-            One sentence: scope + risk level.
-
-            **Issues:** N (see inline comments)
-            ```
-
-            Example - no issues:
-            ```
-            ### Review Summary
-            Focused changes with low risk.
-
-            **Issues:** 0
-            ```
-
-            Example - with issues:
-            ```
-            ### Review Summary
-            Adds caching layer, see inline comments for details.
-
-            **Issues:** 3 (see inline comments)
             ```
             </output-format>
 
           # Tools for comprehensive PR review
           claude_args: |
-            --allowedTools mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Bash(find:*)
+            --allowedTools mcp__github_inline_comment__create_inline_comment,Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Bash(find:*)
 
 # When track_progress is enabled:
 # - Creates a tracking comment with progress checkboxes
