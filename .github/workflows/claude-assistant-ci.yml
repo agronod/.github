@@ -73,7 +73,7 @@
 #
 # Optional inputs:
 # - track_progress: Show verbose progress tracking (default: false)
-# - minimize_old_comments: Collapse previous Claude comments as outdated (default: true)
+# - outdated_comment_action: Action for outdated comments - resolve, minimize, delete, none (default: delete)
 #
 # For more examples, see: .github/workflows/README.md
 
@@ -87,10 +87,10 @@ on:
         type: boolean
         default: false
         required: false
-      minimize_old_comments:
-        description: 'Collapse previous Claude review comments as outdated'
-        type: boolean
-        default: true
+      outdated_comment_action:
+        description: 'Action for outdated inline comments: resolve, minimize, delete, or none'
+        type: string
+        default: 'delete'
         required: false
     secrets:
       claude_code_oauth_token:
@@ -271,30 +271,86 @@ jobs:
             echo "scope_context=" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Minimize old Claude comments
-        if: inputs.minimize_old_comments
+      - name: Handle outdated Claude comments
+        if: inputs.outdated_comment_action != 'none'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Collapse previous Claude comments as "outdated" to reduce noise
+          # Handle Claude comments based on outdated_comment_action input:
+          # - delete: permanently remove outdated inline comments (default)
+          # - resolve: mark review threads as resolved
+          # - minimize: collapse with "outdated" badge
+          # - none: skip all comment handling
+          #
+          # Only inline review comments where code changed (isOutdated=true) are affected.
+          # PR summary comments are always minimized regardless of action.
+
           PR_NUMBER="${{ github.event.pull_request.number }}"
           REPO="${{ github.repository }}"
+          OWNER="${{ github.repository_owner }}"
+          REPO_NAME="${REPO#*/}"
+          ACTION="${{ inputs.outdated_comment_action }}"
 
-          # Minimize PR conversation comments (summaries, tracking comments)
-          gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
-            --jq '.[] | select(.user.login == "claude[bot]") | .node_id' | while read -r node_id; do
-            if [ -n "$node_id" ]; then
-              gh api graphql -f query='
-                mutation($id: ID!) {
-                  minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) {
-                    minimizedComment { isMinimized }
+          # 1. Handle outdated inline review threads (where code changed)
+          gh api graphql -f query='
+            query($owner: String!, $repo: String!, $pr: Int!) {
+              repository(owner: $owner, name: $repo) {
+                pullRequest(number: $pr) {
+                  reviewThreads(first: 100) {
+                    nodes {
+                      id
+                      isOutdated
+                      isResolved
+                      comments(first: 1) {
+                        nodes {
+                          id
+                          author { login }
+                        }
+                      }
+                    }
                   }
-                }' -f id="$node_id" 2>/dev/null || true
-            fi
+                }
+              }
+            }
+          ' -f owner="$OWNER" -f repo="$REPO_NAME" -F pr="$PR_NUMBER" \
+            --jq '.data.repository.pullRequest.reviewThreads.nodes[]
+                  | select(.isOutdated == true and .isResolved == false)
+                  | select(.comments.nodes[0].author.login == "claude[bot]")
+                  | {threadId: .id, commentId: .comments.nodes[0].id}' 2>/dev/null | while read -r item; do
+
+            THREAD_ID=$(echo "$item" | jq -r '.threadId')
+            COMMENT_ID=$(echo "$item" | jq -r '.commentId')
+
+            case "$ACTION" in
+              resolve)
+                gh api graphql -f query='
+                  mutation($id: ID!) {
+                    resolveReviewThread(input: {threadId: $id}) {
+                      thread { isResolved }
+                    }
+                  }' -f id="$THREAD_ID" 2>/dev/null || true
+                ;;
+              minimize)
+                gh api graphql -f query='
+                  mutation($id: ID!) {
+                    minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) {
+                      minimizedComment { isMinimized }
+                    }
+                  }' -f id="$COMMENT_ID" 2>/dev/null || true
+                ;;
+              delete)
+                gh api graphql -f query='
+                  mutation($id: ID!) {
+                    deletePullRequestReviewComment(input: {id: $id}) {
+                      clientMutationId
+                    }
+                  }' -f id="$COMMENT_ID" 2>/dev/null || true
+                ;;
+            esac
           done
 
-          # Minimize inline code review comments
-          gh api "repos/$REPO/pulls/$PR_NUMBER/comments" \
+          # 2. Always minimize PR-level summary comments (not filtered by outdated)
+          gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
             --jq '.[] | select(.user.login == "claude[bot]") | .node_id' | while read -r node_id; do
             if [ -n "$node_id" ]; then
               gh api graphql -f query='
