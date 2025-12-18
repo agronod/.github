@@ -387,9 +387,9 @@ jobs:
             <workflow>
             1. Read project context (steering docs if present)
             2. Get PR diff using gh pr diff
-            3. Safety/Bugs: post inline comment with fix
-            4. Conventions/Scope/Cost: inline comment only if severe
-            5. Minor observations: text output only
+            3. Analyze all issues
+            4. Post summary comment first (see summary-output section if present)
+            5. Then post inline comments: Safety/Bugs always, Conventions/Scope/Cost only if severe
             </workflow>
 
             <success-criteria>
@@ -424,9 +424,18 @@ jobs:
             ```
             </output-format>
 
+            ${{ inputs.track_progress == false && '
+            <summary-output>
+            Post summary comment FIRST (replaces tracking comment), then post inline comments.
+            Use: gh pr comment --body "### Summary\n\nYour analysis here - scope, findings, recommendations.\n\n**Issues:** N (see inline comments below)"
+            This is your main output - be thorough. Inline comments will follow on specific code lines.
+            </summary-output>
+            ' || '' }}
+
           # Tools for comprehensive PR review
+          # When track_progress is false, allow gh pr comment for summary posting
           claude_args: |
-            --allowedTools mcp__github_inline_comment__create_inline_comment,Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Bash(find:*)
+            --allowedTools mcp__github_inline_comment__create_inline_comment,Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Bash(find:*)${{ inputs.track_progress == false && ',Bash(gh pr comment:*)' || '' }}
 
 # When track_progress is enabled:
 # - Creates a tracking comment with progress checkboxes
