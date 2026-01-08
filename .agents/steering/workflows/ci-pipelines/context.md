@@ -20,8 +20,25 @@ flowchart LR
 |----------|-------------|---------------|-----------------|
 | Node.js | `node-ci.yml` | `node-test.yml` | 20.15.0 |
 | Python | `python-ci.yml` | `python-test.yml` | 3.10 |
-| .NET | `dotnet-ci.yml` | `dotnet-test.yml` | (required) |
+| .NET | `dotnet-ci.yml` | `dotnet-test.yml` | **required** |
 | Go | `go-ci.yml` | `go-test.yml` | 1.21 |
+
+## .NET-Specific Features
+
+.NET workflows have additional inputs not present in other languages:
+
+```yaml
+inputs:
+  dotnet-version:
+    required: true           # No default - must be specified
+    type: string
+  working-directory:
+    default: "."             # Path to .NET solution/project
+    type: string
+  test-filter:
+    default: "Category!=e2e" # Excludes e2e tests by default
+    type: string
+```
 
 ## Standard CI Workflow Structure
 

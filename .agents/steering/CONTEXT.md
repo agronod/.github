@@ -1,12 +1,13 @@
 # AI Context Documentation
-Generated: 2025-12-10 10:25
-Commit: 7ce0351
-Mode: incremental (restructure)
+Generated: 2026-01-08 09:15
+Commit: 698f7c3
+Mode: incremental
 
 ## Last Updated
-- Restructured: Renamed generic folders to specific names for better searchability
-- Added: workflows/claude-assistant (Claude AI review and interaction patterns)
-- Changes: overview→building, security→scanning, overview→gitops, overview→semver, common→pitfalls
+- Updated: workflows/ci-pipelines (added .NET-specific features documentation)
+- Fixed: broken cross-reference in workflows/claude-assistant
+- Structure: kept as-is
+- Files analyzed: 3
 
 ## Structure
 
