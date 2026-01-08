@@ -1,0 +1,100 @@
+# .NET NuGet Package Pull Request Validation
+#
+# CI workflow for validating .NET library pull requests. Runs tests, builds
+# a prerelease NuGet package with PR-specific version, publishes to GitHub
+# Packages, and posts a comment with installation instructions.
+#
+# PACKAGE VERSIONING
+# ==================
+# PR packages are versioned: <base-version>-<pr-number>-<short-sha>
+# Example: 1.2.3-42-abc1234
+#
+# USAGE EXAMPLE
+# =============
+#   name: PR Validation
+#   on:
+#     pull_request:
+#       types: [opened, synchronize, reopened]
+#
+#   jobs:
+#     validate:
+#       uses: <org>/.github/.github/workflows/dotnet-packages-pull-request.yml@main
+#       with:
+#         dotnet-version: "8.0"
+#         package-name: "Agronod.Mvc"
+#       secrets:
+#         github-user: ${{ secrets.GH_USER }}
+#         github-token: ${{ secrets.GH_TOKEN }}
+
+name: .NET Package Pull Request
+
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        description: ".NET SDK version"
+        required: true
+        type: string
+      working-directory:
+        description: "Path to the directory containing the .NET solution or project"
+        default: "."
+        type: string
+      package-name:
+        description: "NuGet package name"
+        required: true
+        type: string
+      test:
+        description: "Run tests"
+        default: true
+        type: boolean
+      test-filter:
+        description: "XUnit test filter expression"
+        default: "Category!=e2e"
+        type: string
+    secrets:
+      github-user:
+        description: "GitHub username for NuGet feed authentication"
+        required: true
+      github-token:
+        description: "GitHub token for builds, publishing, and PR comments"
+        required: true
+
+jobs:
+  test:
+    uses: ./.github/workflows/dotnet-test.yml
+    with:
+      dotnet-version: ${{ inputs.dotnet-version }}
+      working-directory: ${{ inputs.working-directory }}
+      test-filter: ${{ inputs.test-filter }}
+      enabled: ${{ inputs.test }}
+    secrets:
+      github-user: ${{ secrets.github-user }}
+      github-token: ${{ secrets.github-token }}
+
+  next-version:
+    needs: "test"
+    uses: ./.github/workflows/next-version.yaml
+    with:
+      is-pull-request: true
+    secrets:
+      github-token: ${{ secrets.github-token }}
+
+  pack-and-publish:
+    needs: "next-version"
+    uses: ./.github/workflows/dotnet-pack-nuget.yml
+    with:
+      dotnet-version: ${{ inputs.dotnet-version }}
+      working-directory: ${{ inputs.working-directory }}
+      package-version: ${{ needs.next-version.outputs.version }}
+    secrets:
+      github-user: ${{ secrets.github-user }}
+      github-token: ${{ secrets.github-token }}
+
+  comment-package:
+    needs: ["next-version", "pack-and-publish"]
+    uses: ./.github/workflows/comment-nuget-package.yml
+    with:
+      package-name: ${{ inputs.package-name }}
+      package-version: ${{ needs.next-version.outputs.version }}
+    secrets:
+      github-token: ${{ secrets.github-token }}
