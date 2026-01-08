@@ -50,6 +50,7 @@ flowchart LR
     A[test] --> B[next-version]
     B --> C[dotnet-pack-nuget]
     C --> D[create-release]
+    D --> E[update-changelog]
 ```
 
 ### Available Workflows
@@ -60,6 +61,7 @@ flowchart LR
 | `dotnet-packages-pull-request.yml` | PR validation with prerelease packages |
 | `dotnet-pack-nuget.yml` | Build, pack, and publish NuGet packages |
 | `comment-nuget-package.yml` | Post PR comment with installation instructions |
+| `update-changelog.yml` | Update CHANGELOG.md after release |
 
 ### NuGet CI Inputs
 
@@ -109,6 +111,7 @@ jobs:
 - No image scanning (Trivy) step
 - No GitOps promotion step
 - PR workflow posts installation instructions as comment
+- Auto-updates CHANGELOG.md after each release
 
 ## Standard CI Workflow Structure
 
@@ -175,5 +178,5 @@ jobs:
 ## References
 
 - Key files: `.github/workflows/node-ci.yml`, `.github/workflows/python-ci.yml`
-- NuGet files: `.github/workflows/dotnet-packages-ci.yml`, `.github/workflows/dotnet-pack-nuget.yml`
+- NuGet files: `.github/workflows/dotnet-packages-ci.yml`, `.github/workflows/dotnet-pack-nuget.yml`, `.github/workflows/update-changelog.yml`
 - Related contexts: `../pr-validation/context.md`, `../../versioning/semver/context.md`

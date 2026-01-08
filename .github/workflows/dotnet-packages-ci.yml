@@ -10,6 +10,7 @@
 # 2. next-version - Calculate semantic version from conventional commits
 # 3. pack         - Build and publish NuGet package to GitHub Packages
 # 4. release      - Create GitHub release with changelog
+# 5. changelog    - Update CHANGELOG.md with release notes
 #
 # PACKAGE VERSIONING
 # ==================
@@ -104,3 +105,12 @@ jobs:
       tag: ${{ needs.next-version.outputs.tag }}
       version: ${{ needs.next-version.outputs.version }}
       changelog: ${{ needs.next-version.outputs.changelog }}
+
+  update-changelog:
+    needs: ["create-release", "next-version"]
+    uses: ./.github/workflows/update-changelog.yml
+    with:
+      version: ${{ needs.next-version.outputs.version }}
+      changelog: ${{ needs.next-version.outputs.changelog }}
+    secrets:
+      github-token: ${{ secrets.github-token }}
