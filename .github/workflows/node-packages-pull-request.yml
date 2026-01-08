@@ -1,0 +1,94 @@
+# Node.js npm Package Pull Request Validation
+#
+# CI workflow for validating Node.js library pull requests. Runs tests, builds
+# a prerelease npm package with PR-specific version, publishes to GitHub
+# Packages, and posts a comment with installation instructions.
+#
+# PACKAGE VERSIONING
+# ==================
+# PR packages are versioned: <base-version>-<pr-number>-<short-sha>
+# Example: 1.2.3-42-abc1234
+#
+# USAGE EXAMPLE
+# =============
+#   name: PR Validation
+#   on:
+#     pull_request:
+#       types: [opened, synchronize, reopened]
+#
+#   jobs:
+#     validate:
+#       uses: <org>/.github/.github/workflows/node-packages-pull-request.yml@main
+#       with:
+#         node-version: "20.15.0"
+#         package-name: "@agronod/nestjs-modules"
+#       secrets:
+#         github-token: ${{ secrets.GH_TOKEN }}
+
+name: Node Package Pull Request
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version"
+        required: true
+        type: string
+      working-directory:
+        description: "Path to the directory containing the npm project"
+        default: "."
+        type: string
+      package-name:
+        description: "npm package name (e.g., @agronod/nestjs-modules)"
+        required: true
+        type: string
+      test:
+        description: "Run tests"
+        default: true
+        type: boolean
+      build-command:
+        description: "Build command to run before publishing"
+        default: "npm run build"
+        type: string
+    secrets:
+      github-token:
+        description: "GitHub token for builds, publishing, and PR comments"
+        required: true
+
+jobs:
+  test:
+    uses: ./.github/workflows/node-test.yml
+    with:
+      node-version: ${{ inputs.node-version }}
+      working-directory: ${{ inputs.working-directory }}
+      enabled: ${{ inputs.test }}
+    secrets:
+      github-token: ${{ secrets.github-token }}
+
+  next-version:
+    needs: "test"
+    uses: ./.github/workflows/next-version.yaml
+    with:
+      is-pull-request: true
+    secrets:
+      github-token: ${{ secrets.github-token }}
+
+  pack-and-publish:
+    needs: "next-version"
+    uses: ./.github/workflows/npm-pack-publish.yml
+    with:
+      node-version: ${{ inputs.node-version }}
+      working-directory: ${{ inputs.working-directory }}
+      package-version: ${{ needs.next-version.outputs.version }}
+      build-command: ${{ inputs.build-command }}
+    secrets:
+      github-token: ${{ secrets.github-token }}
+
+  comment-package:
+    needs: ["next-version", "pack-and-publish"]
+    uses: ./.github/workflows/comment-npm-package.yml
+    with:
+      package-name: ${{ inputs.package-name }}
+      package-version: ${{ needs.next-version.outputs.version }}
+    secrets:
+      github-token: ${{ secrets.github-token }}

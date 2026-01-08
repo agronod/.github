@@ -1,5 +1,5 @@
 # CI Pipeline Workflows
-Keywords: ci, pipeline, test, build, release, node, python, dotnet, go, language, nuget, package
+Keywords: ci, pipeline, test, build, release, node, python, dotnet, go, language, nuget, npm, package
 
 ## Architecture
 
@@ -19,6 +19,7 @@ flowchart LR
 | Language | CI Workflow | Test Workflow | Default Version |
 |----------|-------------|---------------|-----------------|
 | Node.js | `node-ci.yml` | `node-test.yml` | 20.15.0 |
+| Node.js (npm) | `node-packages-ci.yml` | `node-test.yml` | **required** |
 | Python | `python-ci.yml` | `python-test.yml` | 3.10 |
 | .NET | `dotnet-ci.yml` | `dotnet-test.yml` | **required** |
 | .NET (NuGet) | `dotnet-packages-ci.yml` | `dotnet-test.yml` | **required** |
@@ -113,6 +114,78 @@ jobs:
 - PR workflow posts installation instructions as comment
 - Auto-updates CHANGELOG.md after each release
 
+## Node.js npm Package Workflows
+
+For Node.js libraries that publish npm packages (not container images), use the package-specific workflows:
+
+```mermaid
+flowchart LR
+    A[test] --> B[next-version]
+    B --> C[npm-pack-publish]
+    C --> D[create-release]
+    D --> E[update-changelog]
+```
+
+### Available Workflows
+
+| Workflow | Purpose |
+|----------|---------|
+| `node-packages-ci.yml` | Main CI for npm libraries (push to main) |
+| `node-packages-pull-request.yml` | PR validation with prerelease packages |
+| `npm-pack-publish.yml` | Build and publish npm packages |
+| `comment-npm-package.yml` | Post PR comment with installation instructions |
+| `update-changelog.yml` | Update CHANGELOG.md after release |
+
+### npm CI Inputs
+
+```yaml
+inputs:
+  node-version:
+    required: true           # No default - must be specified
+    type: string
+  working-directory:
+    default: "."             # Path to npm project
+    type: string
+  package-name:
+    required: true           # npm package name (e.g., @agronod/nestjs-modules)
+    type: string
+  test:
+    default: true            # Run tests before packaging
+    type: boolean
+  build-command:
+    default: "npm run build" # Build command to run
+    type: string
+```
+
+### Usage Example
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: agronod/.github/.github/workflows/node-packages-ci.yml@main
+    with:
+      node-version: "20.15.0"
+      package-name: "@agronod/nestjs-modules"
+      build-command: "npm run build:tsc"
+    secrets:
+      github-token: ${{ secrets.GH_TOKEN }}
+```
+
+### Key Differences from Container Workflows
+
+- Publishes npm packages to GitHub Packages instead of container images
+- No image scanning (Trivy) step
+- No GitOps promotion step
+- PR workflow posts installation instructions as comment
+- Auto-updates CHANGELOG.md after each release
+- Configurable build command (default: `npm run build`)
+
 ## Standard CI Workflow Structure
 
 ```yaml
@@ -178,5 +251,7 @@ jobs:
 ## References
 
 - Key files: `.github/workflows/node-ci.yml`, `.github/workflows/python-ci.yml`
-- NuGet files: `.github/workflows/dotnet-packages-ci.yml`, `.github/workflows/dotnet-pack-nuget.yml`, `.github/workflows/update-changelog.yml`
+- NuGet files: `.github/workflows/dotnet-packages-ci.yml`, `.github/workflows/dotnet-pack-nuget.yml`
+- npm files: `.github/workflows/node-packages-ci.yml`, `.github/workflows/npm-pack-publish.yml`
+- Shared: `.github/workflows/update-changelog.yml`
 - Related contexts: `../pr-validation/context.md`, `../../versioning/semver/context.md`
