@@ -127,6 +127,12 @@ uses: agronod/.github/.github/workflows/node-ci.yml@v1.2.3
 
 When `v1.2.3` is released, the `v1` tag is automatically updated to point to it.
 
+> **Note: GitHub CDN Cache Delay**
+>
+> GitHub caches tag references for up to 24 hours. After a new release, workflows referencing `@v1` may temporarily resolve to the previous version until the cache clears. This is a known GitHub limitation that affects all repositories using floating tags (including `actions/checkout`, `actions/setup-node`, etc.).
+>
+> If you need the latest version immediately after a release, reference the specific tag (e.g., `@v1.2.3`) until the cache updates.
+
 ### Hotfixes for Previous Major Versions
 
 When a new major version (e.g., `v2.0.0`) is released:
