@@ -13,6 +13,7 @@ This internal repository helps maintain consistency across Agronod's development
 ### How the Fallback Mechanism Works
 
 Files in this `.github` repository serve as defaults for all Agronod repositories. If a repository doesn't have its own `.github` directory with specific files, it will use the templates from this repository. For example:
+
 - If a repository lacks issue templates, it will use the ones defined here
 - Repositories with their own `.github/ISSUE_TEMPLATE/` will override these defaults
 - This ensures consistency while allowing repository-specific customization
@@ -36,23 +37,26 @@ Files in this `.github` repository serve as defaults for all Agronod repositorie
 ## Repository Structure
 
 ### Organization Profile
+
 - `profile/README.md` - The README displayed on Agronod's GitHub organization page
 
-### Community Health Files (Potential)
-This repository can contain default community health files that act as fallbacks for all Agronod repositories:
+### Community Health Files
+
+Default community health files that act as fallbacks for all Agronod repositories:
+
+- `CONTRIBUTING.md` - Contribution guidelines (applies org-wide)
+
+Additional files can be added:
+
 - `ISSUE_TEMPLATE/` - Default issue templates
 - `PULL_REQUEST_TEMPLATE.md` - Default PR template
 - `CODE_OF_CONDUCT.md` - Organization-wide code of conduct
-- `CONTRIBUTING.md` - Default contribution guidelines
-- `FUNDING.yml` - Sponsorship information
 
-*Note: When added, these files will apply to all repositories that don't have their own `.github/` directory with these files.*
+*Note: These files apply to all repositories that don't have their own `.github/` directory with these files.*
 
 ### Reusable Workflows
-- `.github/workflows/` - Centralized CI/CD workflows used across Agronod repositories
 
-### Documentation
-- `ai-docs/` - Technical documentation for workflow development and AI-assisted contributions
+- `.github/workflows/` - Centralized CI/CD workflows used across Agronod repositories
 
 ## Using Reusable Workflows
 
@@ -67,7 +71,7 @@ on:
 
 jobs:
   ci:
-    uses: agronod/.github/.github/workflows/node-ci.yml@main
+    uses: agronod/.github/.github/workflows/node-ci.yml@v1
     with:
       node-version: "20.15.0"
       application-name: "my-app"
@@ -81,67 +85,12 @@ jobs:
 
 ## Contributing
 
-This is an internal Agronod repository. All team members are encouraged to contribute improvements to our workflows and documentation.
+We welcome contributions from all Agronod team members. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for:
 
-### Before You Start
-
-1. **Read the Documentation**: Check the `ai-docs/` folder for detailed patterns and guidelines
-2. **Review Existing Workflows**: Understand current patterns before proposing changes
-3. **Coordinate with Team**: Check with the development team if someone is already working on similar changes
-
-### Development Process
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/agronod/.github.git
-   cd .github
-   ```
-
-2. **Create a Feature Branch**
-   ```bash
-   git checkout -b feat/your-feature-name
-   ```
-
-3. **Follow Our Conventions**
-   - Use semantic commit messages (`feat:`, `fix:`, `docs:`)
-   - Follow established naming patterns (see `ai-docs/PATTERNS.md`)
-   - Test your changes with pull requests
-   - Update relevant documentation in `ai-docs/`
-
-4. **Submit a Pull Request**
-   - Clearly describe your changes
-   - Request review from team members
-   - Ensure all workflow checks pass
-
-### Adding New Language Support
-
-To add support for a new programming language:
-
-1. Create three workflow files:
-   - `{language}-ci.yml` - Main CI workflow
-   - `{language}-test.yml` - Test runner workflow
-   - `{language}-pull-request.yml` - PR validation workflow
-
-2. Follow the established patterns (see `ai-docs/WORKFLOWS.md` for templates)
-
-3. Update this README with the new language in the supported technologies list
-
-### Workflow Development Guidelines
-
-- **Modularity**: Keep workflows focused on a single responsibility
-- **Reusability**: Design workflows to be called by other workflows
-- **Security**: Never expose secrets in logs or outputs
-- **Documentation**: Add clear descriptions to inputs and outputs
-- **Testing**: Test workflows using pull requests before merging
-
-## Documentation Structure
-
-- `README.md` - This file, providing overview and quick start
-- `ai-docs/` - Detailed technical documentation
-  - `CONTEXT.md` - AI agent context and documentation protocol
-  - `ARCHITECTURE.md` - System design and component relationships
-  - `PATTERNS.md` - Code patterns and conventions
-  - `WORKFLOWS.md` - Step-by-step development guides
+- Development workflow and setup
+- Commit conventions (we use [Conventional Commits](https://www.conventionalcommits.org/))
+- Pull request process
+- Adding new language support
 
 ## Release Pipeline
 
@@ -149,7 +98,7 @@ This repository uses an automated release pipeline that creates releases based o
 
 ### How It Works
 
-```
+```text
 Push to main/release/* → Calculate Version → Create Release → Update Changelog
                                                     ↓
                                           Update floating tag (v1 → v1.2.3)
@@ -158,7 +107,7 @@ Push to main/release/* → Calculate Version → Create Release → Update Chang
 ### Version Bumping
 
 | Commit Prefix | Version Bump | Example |
-|---------------|--------------|---------|
+| ------------- | ------------ | ------- |
 | `feat:` | Minor (0.X.0) | `feat: add new workflow` |
 | `fix:` | Patch (0.0.X) | `fix: correct permissions` |
 | `BREAKING CHANGE:` or `feat!:` | Major (X.0.0) | `feat!: redesign API` |
@@ -181,18 +130,20 @@ When `v1.2.3` is released, the `v1` tag is automatically updated to point to it.
 ### Hotfixes for Previous Major Versions
 
 When a new major version (e.g., `v2.0.0`) is released:
+
 1. A `release/v1` maintenance branch is automatically created
 2. Hotfixes can be committed to `release/v1`
 3. Pushing to `release/v1` triggers the release pipeline → creates `v1.x.y`
 4. Both the exact tag and floating `v1` tag are updated
 
-```
+```text
 main ─────────────────────────────► v2.x development
          │
          └── release/v1 ──────────► v1.x hotfixes only
 ```
 
 To manually create a release branch before a major bump:
+
 ```bash
 git checkout -b release/v1 v1.2.0 && git push origin release/v1
 ```
@@ -200,6 +151,7 @@ git checkout -b release/v1 v1.2.0 && git push origin release/v1
 ## Workflow Components
 
 ### Core Workflows
+
 - **Release Pipeline**: `release.yml` - Orchestrates versioning, release creation, and changelog
 - **Version Management**: `next-version.yaml` - Calculates semantic version from commits
 - **Container Building**: `build-and-push-image-v2.yml`
@@ -207,17 +159,14 @@ git checkout -b release/v1 v1.2.0 && git push origin release/v1
 - **Application Promotion**: `promote-application.yml`
 
 ### Language-Specific Workflows
+
 Each supported language has three workflows:
+
 - `{language}-ci.yml` - Complete CI pipeline
 - `{language}-test.yml` - Test execution
 - `{language}-pull-request.yml` - PR validation
 
 ## Internal Resources
 
-- **Documentation**: Detailed guides in the `ai-docs/` directory
 - **Confluence**: [Agronod Development Best Practices](https://agronod.atlassian.net/wiki/spaces/Utveckling)
 - **Team Support**: Reach out to the development team for questions or assistance
-
-## Workflow Components
-
-For a complete list of available workflows and their purposes, see the [Workflow Components](#workflow-components) section above or refer to `ai-docs/ARCHITECTURE.md` for detailed technical information.
