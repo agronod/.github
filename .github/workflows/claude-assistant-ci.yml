@@ -1,36 +1,50 @@
-# Claude AI Assistant for GitHub Repositories
+# Claude AI Assistant for Pull Request Reviews and Interactive Help
 #
-# Reusable workflow providing AI-powered assistance through two modes:
-# - Interactive @claude mentions in issues, comments, and PR reviews
-# - Automatic PR review with inline comments and GitHub suggestions
+# Provides AI-powered code assistance via the Claude Code Action:
+# - Interactive @claude mentions in comments, issues, and reviews
+# - Automatic PR reviews with inline comments and progress tracking
 #
-# JOBS
-# ====
-# claude-interactive: Responds to @claude mentions anywhere in the repository.
-#   Triggers: issue_comment, pull_request_review_comment, pull_request_review, issues
-#   Uses sticky comments to consolidate responses in a single thread.
+# INTERACTIVE MODE (@claude mentions)
+# ===================================
+# Claude responds to @claude mentions in:
+# - Issue comments and issue bodies
+# - PR comments and review comments
+# - PR review bodies
 #
-# claude-pr-review: Automatic code review on every pull request.
-#   Triggers: pull_request (opened, synchronize, reopened)
-#   Posts inline comments with GitHub suggestions for actionable fixes.
-#   Focus areas: security, bugs, conventions, scope creep, performance.
+# Uses sticky comments to consolidate responses and loads project context
+# from .agents/steering/ and CLAUDE.md before responding.
 #
-# SETUP
-# =====
-# 1. Generate a Claude Code OAuth token:
-#    - Visit https://console.anthropic.com/ → API Keys
-#    - Or use Claude Code CLI: `claude auth`
+# AUTOMATIC PR REVIEW MODE
+# ========================
+# Automatically reviews all PRs (except those from bots) with focus on:
+# 1. Safety - Security vulnerabilities, data integrity risks
+# 2. Bugs - Runtime errors, edge cases, logic errors
+# 3. Conventions - Contradictions with steering context or CLAUDE.md
+# 4. Scope - Changes that don't belong in this repository
+# 5. Cost - N+1 queries, unbounded loops, expensive operations
 #
-# 2. Add the token as a repository secret:
-#    - Settings → Secrets and variables → Actions → New repository secret
-#    - Name: CLAUDE_CODE_OAUTH_TOKEN
-#    - Value: <your token>
+# Reviews use inline comments with code blocks showing suggested fixes.
 #
-# 3. Create a caller workflow in your repository (see usage example below)
+# INCREMENTAL REVIEWS
+# ===================
+# When new commits are pushed to an existing PR:
+# - Only reviews the new commits (not the entire PR)
+# - Skips summary comment if no issues found (reduces noise)
+# - Falls back to full review on force push (history rewritten)
 #
-# USAGE EXAMPLE
-# =============
-# Create .github/workflows/claude-assistant.yml in your repository:
+# CONTEXTUAL SIGNALS
+# ==================
+# The workflow detects signals from the PR to adjust review focus:
+#
+# Breaking Changes:
+# - Detected via conventional commits (feat!:, BREAKING CHANGE in body)
+# - Triggers verification of: compatibility, migration docs, version bump
+#
+# Security-Sensitive Files:
+# - Detected via path patterns (auth, crypto, token, permission, etc.)
+# - Elevates scrutiny of: input validation, auth logic, secrets, OWASP risks
+#
+# Usage example:
 #
 #   name: Claude Assistant
 #   on:
@@ -40,21 +54,44 @@
 #       types: [created]
 #     pull_request_review:
 #       types: [submitted]
-#     issues:
-#       types: [opened, edited]
 #     pull_request:
 #       types: [opened, synchronize, reopened]
+#     issues:
+#       types: [opened, edited]
 #
 #   jobs:
 #     claude:
-#       uses: <org>/actions/.github/workflows/ci-claude-assistant.yml@v1
+#       uses: tendium/actions/.github/workflows/ci-claude-assistant.yml@v2
+#       with:
+#         track_progress: false  # Set true for verbose progress checkboxes
 #       secrets:
 #         claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+#
+# Required secrets:
+# - CLAUDE_CODE_OAUTH_TOKEN: OAuth token for Claude Code authentication
+#   (obtain from Anthropic Console → Claude Code → OAuth)
+#
+# Optional inputs:
+# - track_progress: Show verbose progress tracking (default: false)
+# - outdated_comment_action: Action for outdated comments - resolve, minimize, delete, none (default: delete)
+#
+# For more examples, see: .github/workflows/README.md
 
-name: Claude Assistant
+name: Claude Assistant (Reusable)
 
 on:
   workflow_call:
+    inputs:
+      track_progress:
+        description: 'Show verbose progress tracking with todo checkboxes'
+        type: boolean
+        default: false
+        required: false
+      outdated_comment_action:
+        description: 'Action for outdated inline comments: resolve, minimize, delete, or none'
+        type: string
+        default: 'delete'
+        required: false
     secrets:
       claude_code_oauth_token:
         required: true
@@ -79,6 +116,18 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Detect steering context
+        id: context
+        run: |
+          if [ -d ".agents/steering" ]; then
+            echo "steering=true" >> $GITHUB_OUTPUT
+            echo "steering_tree<<EOF" >> $GITHUB_OUTPUT
+            tree -d .agents/steering 2>/dev/null || find .agents/steering -type d | sort
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "steering=false" >> $GITHUB_OUTPUT
+          fi
+
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
@@ -86,12 +135,11 @@ jobs:
           # Use sticky comment for consolidated responses
           use_sticky_comment: true
 
-          # Context loading for all @claude interactions
+          # Inject steering structure if present (CLAUDE.md is read automatically)
           claude_args: |
-            --append-system-prompt "Before responding to any request:
-            1) Map the .agents/steering/ structure to discover available documentation
-            2) Read relevant context.md files based on the changes being discussed
-            3) Read CLAUDE.md for overall project guidelines."
+            ${{ steps.context.outputs.steering == 'true' && format('--append-system-prompt "Project has steering documentation. Structure:
+            {0}
+            Read relevant context.md files based on the topic being discussed."', steps.context.outputs.steering_tree) || '' }}
 
   # Automatic PR review with progress tracking
   claude-pr-review:
@@ -108,119 +156,342 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 1
+          fetch-depth: 0 # Full history for incremental review detection
+
+      - name: Detect steering context
+        id: context
+        run: |
+          if [ -d ".agents/steering" ]; then
+            echo "steering=true" >> $GITHUB_OUTPUT
+            echo "steering_tree<<EOF" >> $GITHUB_OUTPUT
+            tree -d .agents/steering 2>/dev/null || find .agents/steering -type d | sort
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "steering=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine review scope
+        id: scope
+        run: |
+          if [ "${{ github.event.action }}" = "opened" ] || [ "${{ github.event.action }}" = "reopened" ]; then
+            echo "type=full" >> $GITHUB_OUTPUT
+            echo "from=${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
+            echo "to=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.action }}" = "synchronize" ]; then
+            BEFORE="${{ github.event.before }}"
+            AFTER="${{ github.event.after }}"
+
+            # Detect force push (before is not ancestor of after)
+            if ! git merge-base --is-ancestor "$BEFORE" "$AFTER" 2>/dev/null; then
+              echo "Force push detected - doing full review"
+              echo "type=full" >> $GITHUB_OUTPUT
+              echo "from=${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
+              echo "to=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+            else
+              echo "type=incremental" >> $GITHUB_OUTPUT
+              echo "from=$BEFORE" >> $GITHUB_OUTPUT
+              echo "to=$AFTER" >> $GITHUB_OUTPUT
+            fi
+          else
+            # Fallback for any other action type
+            echo "type=full" >> $GITHUB_OUTPUT
+            echo "from=${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
+            echo "to=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          fi
+          echo "Review type: $(cat $GITHUB_OUTPUT | grep type | cut -d= -f2)"
+
+      - name: Get incremental commit info
+        if: steps.scope.outputs.type == 'incremental'
+        id: commits
+        run: |
+          COMMIT_COUNT=$(git rev-list --count ${{ steps.scope.outputs.from }}..${{ steps.scope.outputs.to }})
+          CHANGED_FILES=$(git diff --name-only ${{ steps.scope.outputs.from }}..${{ steps.scope.outputs.to }} | head -20)
+          echo "count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "Incremental review: $COMMIT_COUNT new commit(s)"
+
+      - name: Detect change signals
+        id: signals
+        env:
+          FROM_SHA: ${{ steps.scope.outputs.from }}
+          TO_SHA: ${{ steps.scope.outputs.to }}
+        run: |
+          # Detect breaking changes via conventional commits
+          # Patterns: feat!: ..., feat(scope)!: ..., or BREAKING CHANGE in body
+          if git log --format="%s" "$FROM_SHA".."$TO_SHA" 2>/dev/null | grep -qE "^[a-z]+(\([^)]+\))?!:"; then
+            echo "breaking=true" >> $GITHUB_OUTPUT
+            echo "Signal: Breaking change detected (commit subject)"
+          elif git log --format="%b" "$FROM_SHA".."$TO_SHA" 2>/dev/null | grep -qiE "BREAKING[- ]CHANGE"; then
+            echo "breaking=true" >> $GITHUB_OUTPUT
+            echo "Signal: Breaking change detected (commit body)"
+          fi
+
+          # Detect security-sensitive file changes
+          FILES=$(git diff --name-only "$FROM_SHA".."$TO_SHA" 2>/dev/null || true)
+          if echo "$FILES" | grep -qiE "(auth|security|crypto|session|permission|secret|credential|password|token|jwt|oauth|saml|certificate|acl|rbac)"; then
+            echo "security=true" >> $GITHUB_OUTPUT
+            echo "Signal: Security-sensitive files detected"
+          fi
+
+      - name: Build review prompt
+        id: prompt
+        env:
+          REVIEW_TYPE: ${{ steps.scope.outputs.type }}
+          COMMIT_FROM: ${{ steps.scope.outputs.from }}
+          COMMIT_TO: ${{ steps.scope.outputs.to }}
+          COMMIT_COUNT: ${{ steps.commits.outputs.count }}
+          CHANGED_FILES: ${{ steps.commits.outputs.files }}
+        run: |
+          if [ "$REVIEW_TYPE" = "incremental" ]; then
+            {
+              echo "scope_context<<SCOPE_EOF"
+              echo "<review-scope type=\"incremental\">"
+              echo "INCREMENTAL REVIEW - Only review NEW commits, not the entire PR."
+              echo ""
+              echo "Commit range: ${COMMIT_FROM}...${COMMIT_TO}"
+              echo "New commits: ${COMMIT_COUNT}"
+              echo "Files changed in this push:"
+              echo "${CHANGED_FILES}"
+              echo ""
+              echo "CRITICAL CONSTRAINTS:"
+              echo "- Focus ONLY on code in these specific commits"
+              echo "- Do NOT re-review code from previous commits"
+              echo "- If NO issues found: skip the summary comment entirely (just say nothing)"
+              echo ""
+              echo "DEDUPLICATION:"
+              echo "- Run: gh pr view --json reviews,comments to see existing feedback"
+              echo "- Skip any issue already raised in previous reviews"
+              echo "- Only post NEW issues from these specific commits"
+              echo "</review-scope>"
+              echo "SCOPE_EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "scope_context=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Handle outdated Claude comments
+        if: inputs.outdated_comment_action != 'none'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Handle Claude comments based on outdated_comment_action input:
+          # - delete: permanently remove outdated inline comments (default)
+          # - resolve: mark review threads as resolved
+          # - minimize: collapse with "outdated" badge
+          # - none: skip all comment handling
+          #
+          # Only inline review comments where code changed (isOutdated=true) are affected.
+          # PR summary comments are always minimized regardless of action.
+
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          OWNER="${{ github.repository_owner }}"
+          REPO_NAME="${REPO#*/}"
+          ACTION="${{ inputs.outdated_comment_action }}"
+
+          # 1. Handle outdated inline review threads (where code changed)
+          gh api graphql -f query='
+            query($owner: String!, $repo: String!, $pr: Int!) {
+              repository(owner: $owner, name: $repo) {
+                pullRequest(number: $pr) {
+                  reviewThreads(first: 100) {
+                    nodes {
+                      id
+                      isOutdated
+                      isResolved
+                      comments(first: 1) {
+                        nodes {
+                          id
+                          author { login }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ' -f owner="$OWNER" -f repo="$REPO_NAME" -F pr="$PR_NUMBER" \
+            --jq '.data.repository.pullRequest.reviewThreads.nodes[]
+                  | select(.isOutdated == true and .isResolved == false)
+                  | select(.comments.nodes[0].author.login == "claude[bot]")
+                  | {threadId: .id, commentId: .comments.nodes[0].id}' 2>/dev/null | while read -r item; do
+
+            THREAD_ID=$(echo "$item" | jq -r '.threadId')
+            COMMENT_ID=$(echo "$item" | jq -r '.commentId')
+
+            case "$ACTION" in
+              resolve)
+                gh api graphql -f query='
+                  mutation($id: ID!) {
+                    resolveReviewThread(input: {threadId: $id}) {
+                      thread { isResolved }
+                    }
+                  }' -f id="$THREAD_ID" 2>/dev/null || true
+                ;;
+              minimize)
+                gh api graphql -f query='
+                  mutation($id: ID!) {
+                    minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) {
+                      minimizedComment { isMinimized }
+                    }
+                  }' -f id="$COMMENT_ID" 2>/dev/null || true
+                ;;
+              delete)
+                gh api graphql -f query='
+                  mutation($id: ID!) {
+                    deletePullRequestReviewComment(input: {id: $id}) {
+                      clientMutationId
+                    }
+                  }' -f id="$COMMENT_ID" 2>/dev/null || true
+                ;;
+            esac
+          done
+
+          # 2. Always minimize PR-level summary comments (not filtered by outdated)
+          gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+            --jq '.[] | select(.user.login == "claude[bot]") | .node_id' | while read -r node_id; do
+            if [ -n "$node_id" ]; then
+              gh api graphql -f query='
+                mutation($id: ID!) {
+                  minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) {
+                    minimizedComment { isMinimized }
+                  }
+                }' -f id="$node_id" 2>/dev/null || true
+            fi
+          done
 
       - name: PR Review with Progress Tracking
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
 
-          # Enable progress tracking for automation mode
-          track_progress: true
+          # Progress tracking (verbose todo checkboxes) - opt-in via input
+          track_progress: ${{ inputs.track_progress }}
 
           # Instructions for the PR review
           prompt: |
-            <context>
-            Map .agents/steering/ and read relevant context.md files for areas touched by this PR.
-            Read CLAUDE.md for project guidelines.
-            </context>
+            ${{ steps.prompt.outputs.scope_context }}
+
+            ${{ steps.signals.outputs.breaking == 'true' && '
+            <alert type="breaking-change" priority="high">
+            BREAKING CHANGE DETECTED in commit history.
+
+            Additional verification required:
+            - Backward compatibility impact assessed
+            - Migration path documented (if public API)
+            - Version bump appropriate (major version for semver)
+            - Changelog mentions breaking change
+            </alert>
+            ' || '' }}
+            ${{ steps.signals.outputs.security == 'true' && '
+            <alert type="security-sensitive" priority="elevated">
+            SECURITY-SENSITIVE FILES modified in this PR.
+
+            Elevate scrutiny of:
+            - Input validation and sanitization
+            - Authentication/authorization logic
+            - Secret handling (no hardcoded values, proper env usage)
+            - Common vulnerabilities (injection, XSS, CSRF, path traversal)
+            - Permission checks and access control
+            </alert>
+            ' || '' }}
+            ${{ steps.context.outputs.steering == 'true' && format('<project-context source="steering">
+            Steering documentation structure:
+            {0}
+
+            After reading the diff, read relevant context.md files based on the steering structure.
+            </project-context>
+            ', steps.context.outputs.steering_tree) || '' }}
 
             <focus priority="ordered">
+            ALWAYS inline comment (with fix):
             1. Safety - Security vulnerabilities, data integrity risks
             2. Bugs - Runtime errors, edge cases, logic errors
-            3. Conventions - Contradicts steering context or CLAUDE.md
-            4. Scope - Changes that don't belong in this repository
-            5. Cost - N+1 queries, unbounded loops, expensive operations
+
+            Inline comment ONLY if severe:
+            3. Conventions - Only if it clearly violates project conventions
+            4. Scope - Only if it absolutely doesn't belong in this repo
+            5. Cost - Only if it's a major performance issue (N+1, unbounded loops)
+
+            Minor issues: text output only, no inline comment
             </focus>
 
-            <constraints>
-            - Skip: style nitpicks, missing tests, docs, praise, import organization
-            - Do NOT suggest reformatting imports, objects, or arrays across multiple lines
-            - Use inline comments for file-specific issues (enables GitHub suggestions)
-            - Summary comment only for overall assessment
-            </constraints>
+            <rules>
+            - Skip: style nitpicks, missing tests, documentation gaps
+            - Safety/Bugs: always inline comment with suggested fix
+            - Conventions/Scope/Cost: inline comment only if severe, otherwise text output
+            </rules>
+
+            <critical>
+            Hard prohibitions - NEVER violate:
+            - NO positive commentary (no praise, compliments, or positive observations)
+            - NO inline comments for minor issues - use text output instead
+            - NO reviewing outside commit range in incremental mode
+            - NEVER guess file contents - always read first
+            </critical>
+
+            <tool-usage>
+            gh pr diff: FIRST - get complete diff to understand scope
+            gh pr view: Check existing comments before posting duplicates
+            Read: When diff context insufficient (need full file)
+            Glob: Find related files that might be affected by changes
+            mcp__github_inline_comment: Safety, Bugs, and severe Conventions/Scope/Cost only
+            </tool-usage>
 
             <workflow>
-            1. Read the PR diff and changed files
-            2. For each issue found: post inline comment at the exact line using create_inline_comment tool
-            3. After all inline comments: post one summary comment with overall assessment
+            1. Read project context (steering docs if present)
+            2. Get PR diff using gh pr diff
+            3. Analyze all issues
+            4. Post summary comment first (see summary-output section if present)
+            5. Then post inline comments: Safety/Bugs always, Conventions/Scope/Cost only if severe
             </workflow>
 
-            <inline-comment-format>
-            **[TYPE]** Brief issue title
+            <success-criteria>
+            - Safety and Bug issues always have inline comments
+            - Minor issues appear in text output, not as inline comments
+            - Zero positive commentary
+            - Incremental reviews stay within commit range
+            </success-criteria>
 
-            Why it matters.
+            <output-format>
+            INLINE COMMENT (Safety, Bugs, severe issues only):
+            Post using mcp__github_inline_comment at the exact line.
 
-            ```suggestion
-            replacement code
+            Format:
             ```
-            </inline-comment-format>
+            One sentence explanation.
 
-            <suggestion-rules>
-            CRITICAL - GitHub suggestions replace ONLY the exact lines the comment spans:
-            - Single-line comment → suggestion replaces that ONE line only
-            - Multi-line comment (startLine to line) → suggestion replaces that range only
+            **Suggestion:**
+            ```lang
+            corrected code
+            ```
+            ```
 
-            NEVER suggest reformatting multi-line statements (imports, objects, arrays) from a single-line comment.
-            If a fix requires changing N lines, the comment MUST span all N lines using startLine parameter.
-
-            SAFE: Bug fix on the exact line commented
-            UNSAFE: Reformatting a 20-line import block from a comment on line 20
-            </suggestion-rules>
-
-            <summary-comment-format>
-            ### Review Summary
-            One sentence: scope, risk level, key concerns.
-
-            **Issues found:** N (linked via inline comments above)
-
-            ### Watch
-            Optional. Max 2 items. Non-blocking observations that could drift into problems.
-            - `path/file.ts:99` - Brief concern
-            </summary-comment-format>
-
-            <example-inline-single-line>
-            Comment on single line: `const name = user.name;`
-
-            **[BUG]** Null reference on undefined user
-
+            Example:
+            ```
             Will throw TypeError when user lookup fails.
 
-            ```suggestion
+            **Suggestion:**
+            ```ts
             const name = user?.name ?? 'Unknown';
             ```
-            </example-inline-single-line>
-
-            <example-inline-multi-line>
-            Comment spanning lines 5-7 (using startLine=5, line=7):
             ```
-            const config = {
-              timeout: 5000
-            };
-            ```
+            </output-format>
 
-            **[BUG]** Missing required retry option
-
-            ```suggestion
-            const config = {
-              timeout: 5000,
-              retry: 3
-            };
-            ```
-            </example-inline-multi-line>
-
-            <example-summary-clean>
-            ### Review Summary
-            Focused changes with low risk.
-
-            **Issues found:** 0
-
-            ✅ No concerns.
-            </example-summary-clean>
+            ${{ inputs.track_progress == false && '
+            <summary-output>
+            Post summary comment FIRST (replaces tracking comment), then post inline comments.
+            Use: gh pr comment --body "### Summary\n\nYour analysis here - scope, findings, recommendations.\n\n**Issues:** N (see inline comments below)"
+            This is your main output - be thorough. Inline comments will follow on specific code lines.
+            </summary-output>
+            ' || '' }}
 
           # Tools for comprehensive PR review
+          # When track_progress is false, allow gh pr comment for summary posting
           claude_args: |
-            --allowedTools mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Bash(find:*)
+            --allowedTools mcp__github_inline_comment__create_inline_comment,Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Bash(find:*)${{ inputs.track_progress == false && ',Bash(gh pr comment:*)' || '' }}
 
 # When track_progress is enabled:
 # - Creates a tracking comment with progress checkboxes
