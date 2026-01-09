@@ -1,5 +1,5 @@
 # CI Pipeline Workflows
-Keywords: ci, pipeline, test, build, release, node, python, dotnet, go, language
+Keywords: ci, pipeline, test, build, release, node, python, dotnet, go, language, nuget, package
 
 ## Architecture
 
@@ -20,8 +20,98 @@ flowchart LR
 |----------|-------------|---------------|-----------------|
 | Node.js | `node-ci.yml` | `node-test.yml` | 20.15.0 |
 | Python | `python-ci.yml` | `python-test.yml` | 3.10 |
-| .NET | `dotnet-ci.yml` | `dotnet-test.yml` | (required) |
+| .NET | `dotnet-ci.yml` | `dotnet-test.yml` | **required** |
+| .NET (NuGet) | `dotnet-packages-ci.yml` | `dotnet-test.yml` | **required** |
 | Go | `go-ci.yml` | `go-test.yml` | 1.21 |
+
+## .NET-Specific Features
+
+.NET workflows have additional inputs not present in other languages:
+
+```yaml
+inputs:
+  dotnet-version:
+    required: true           # No default - must be specified
+    type: string
+  working-directory:
+    default: "."             # Path to .NET solution/project
+    type: string
+  test-filter:
+    default: "Category!=e2e" # Excludes e2e tests by default
+    type: string
+```
+
+## .NET NuGet Package Workflows
+
+For .NET libraries that publish NuGet packages (not container images), use the package-specific workflows:
+
+```mermaid
+flowchart LR
+    A[test] --> B[next-version]
+    B --> C[dotnet-pack-nuget]
+    C --> D[create-release]
+    D --> E[update-changelog]
+```
+
+### Available Workflows
+
+| Workflow | Purpose |
+|----------|---------|
+| `dotnet-packages-ci.yml` | Main CI for NuGet libraries (push to main) |
+| `dotnet-packages-pull-request.yml` | PR validation with prerelease packages |
+| `dotnet-pack-nuget.yml` | Build, pack, and publish NuGet packages |
+| `comment-nuget-package.yml` | Post PR comment with installation instructions |
+| `update-changelog.yml` | Update CHANGELOG.md after release |
+
+### NuGet CI Inputs
+
+```yaml
+inputs:
+  dotnet-version:
+    required: true           # No default - must be specified
+    type: string
+  working-directory:
+    default: "."             # Path to .NET solution/project
+    type: string
+  package-name:
+    required: true           # NuGet package name
+    type: string
+  test:
+    default: true            # Run tests before packaging
+    type: boolean
+  test-filter:
+    default: "Category!=e2e" # Excludes e2e tests by default
+    type: string
+```
+
+### Usage Example
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: agronod/.github/.github/workflows/dotnet-packages-ci.yml@main
+    with:
+      dotnet-version: "8.0"
+      working-directory: "src/MyLibrary"
+      package-name: "MyLibrary"
+    secrets:
+      github-user: ${{ secrets.GH_USER }}
+      github-token: ${{ secrets.GH_TOKEN }}
+```
+
+### Key Differences from Container Workflows
+
+- Publishes NuGet packages to GitHub Packages instead of container images
+- No image scanning (Trivy) step
+- No GitOps promotion step
+- PR workflow posts installation instructions as comment
+- Auto-updates CHANGELOG.md after each release
 
 ## Standard CI Workflow Structure
 
@@ -88,4 +178,5 @@ jobs:
 ## References
 
 - Key files: `.github/workflows/node-ci.yml`, `.github/workflows/python-ci.yml`
+- NuGet files: `.github/workflows/dotnet-packages-ci.yml`, `.github/workflows/dotnet-pack-nuget.yml`, `.github/workflows/update-changelog.yml`
 - Related contexts: `../pr-validation/context.md`, `../../versioning/semver/context.md`

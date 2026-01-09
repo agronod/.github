@@ -112,4 +112,4 @@ jobs:
 ## References
 
 - Key files: `.github/workflows/claude-assistant-ci.yml`
-- Related contexts: `../ci-pipelines/context.md`, `../../gotchas/common/context.md`
+- Related contexts: `../ci-pipelines/context.md`, `../../gotchas/pitfalls/context.md`
