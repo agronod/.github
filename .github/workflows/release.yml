@@ -1,0 +1,60 @@
+# Release Pipeline
+#
+# Automated release workflow for the shared workflows repository.
+# Calculates semantic version from conventional commits, creates
+# a GitHub release with changelog, and updates CHANGELOG.md.
+#
+# TRIGGER
+# =======
+# Runs automatically on push to main branch.
+#
+# VERSION BUMPING
+# ===============
+# Based on conventional commits:
+# - feat: → minor version bump
+# - fix:  → patch version bump
+# - BREAKING CHANGE: → major version bump
+# - docs:, chore:, etc. → no release created
+#
+# JOB CHAIN
+# =========
+# next-version → create-release → update-changelog
+
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  next-version:
+    name: Calculate Version
+    uses: ./.github/workflows/next-version.yaml
+    with:
+      is-pull-request: false
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  create-release:
+    name: Create Release
+    needs: next-version
+    if: needs.next-version.outputs.version != ''
+    uses: ./.github/workflows/create-release.yml
+    with:
+      tag: ${{ needs.next-version.outputs.tag }}
+      version: ${{ needs.next-version.outputs.version }}
+      changelog: ${{ needs.next-version.outputs.changelog }}
+
+  update-changelog:
+    name: Update Changelog
+    needs: [next-version, create-release]
+    if: needs.next-version.outputs.version != ''
+    uses: ./.github/workflows/update-changelog.yml
+    with:
+      version: ${{ needs.next-version.outputs.version }}
+      changelog: ${{ needs.next-version.outputs.changelog }}
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
