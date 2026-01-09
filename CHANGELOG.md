@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-01-09
+
+### [1.2.1](https://github.com/agronod/.github/compare/v1.2.0...v1.2.1) (2026-01-09)
+
+
+### Documentation
+
+* add note about GitHub CDN cache delay for floating tags ([c71a0fd](https://github.com/agronod/.github/commit/c71a0fdc0aac259d3ebd63d1c3d6c66ce577c557))
+* update CHANGELOG.md for v1.2.0 ([5aa5d0e](https://github.com/agronod/.github/commit/5aa5d0e9af65ac8192edbc75e44f432150cbf678))
+
+
+
+
 ## [1.2.0] - 2026-01-09
 
 ## [1.2.0](https://github.com/agronod/.github/compare/v1.1.0...v1.2.0) (2026-01-09)
