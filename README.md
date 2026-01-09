@@ -143,12 +143,67 @@ To add support for a new programming language:
   - `PATTERNS.md` - Code patterns and conventions
   - `WORKFLOWS.md` - Step-by-step development guides
 
+## Release Pipeline
+
+This repository uses an automated release pipeline that creates releases based on conventional commits.
+
+### How It Works
+
+```
+Push to main/release/* → Calculate Version → Create Release → Update Changelog
+                                                    ↓
+                                          Update floating tag (v1 → v1.2.3)
+```
+
+### Version Bumping
+
+| Commit Prefix | Version Bump | Example |
+|---------------|--------------|---------|
+| `feat:` | Minor (0.X.0) | `feat: add new workflow` |
+| `fix:` | Patch (0.0.X) | `fix: correct permissions` |
+| `BREAKING CHANGE:` or `feat!:` | Major (X.0.0) | `feat!: redesign API` |
+| `docs:`, `chore:`, etc. | No release | `docs: update README` |
+
+### Referencing Workflows
+
+Users reference workflows using the **floating major version tag**:
+
+```yaml
+# Recommended: Use floating major tag for automatic patch/minor updates
+uses: agronod/.github/.github/workflows/node-ci.yml@v1
+
+# Alternative: Pin to exact version
+uses: agronod/.github/.github/workflows/node-ci.yml@v1.2.3
+```
+
+When `v1.2.3` is released, the `v1` tag is automatically updated to point to it.
+
+### Hotfixes for Previous Major Versions
+
+When a new major version (e.g., `v2.0.0`) is released:
+1. A `release/v1` maintenance branch is automatically created
+2. Hotfixes can be committed to `release/v1`
+3. Pushing to `release/v1` triggers the release pipeline → creates `v1.x.y`
+4. Both the exact tag and floating `v1` tag are updated
+
+```
+main ─────────────────────────────► v2.x development
+         │
+         └── release/v1 ──────────► v1.x hotfixes only
+```
+
+To manually create a release branch before a major bump:
+```bash
+git checkout -b release/v1 v1.2.0 && git push origin release/v1
+```
+
 ## Workflow Components
 
 ### Core Workflows
-- **Version Management**: `next-version.yaml`
+- **Release Pipeline**: `release.yml` - Orchestrates versioning, release creation, and changelog
+- **Version Management**: `next-version.yaml` - Calculates semantic version from commits
 - **Container Building**: `build-and-push-image-v2.yml`
-- **Release Creation**: `create-release.yml`
+- **Release Creation**: `create-release.yml` - Creates GitHub release and updates floating tags
 - **Application Promotion**: `promote-application.yml`
 
 ### Language-Specific Workflows

@@ -1,12 +1,21 @@
 # GitHub Release Creator
 #
 # Atomic workflow for creating GitHub releases with changelog.
-# Determines pre-release status based on branch (main = stable release).
+# Determines pre-release status based on configurable branch pattern.
+# Updates floating major version tags for stable releases.
 #
 # RELEASE TYPE
 # ============
-# - main branch: Creates stable release (prerelease: false)
-# - Other branches: Creates pre-release (prerelease: true)
+# Controlled by `stable-branch-pattern` input (regex):
+# - Matching branches: Creates stable release (prerelease: false)
+# - Non-matching branches: Creates pre-release (prerelease: true)
+# - Default pattern: ^refs/heads/main$
+#
+# FLOATING TAGS
+# =============
+# For stable releases, updates the major version floating tag:
+# - v1.2.3 release → updates v1 tag to point to v1.2.3
+# - Enables users to reference @v1 and get latest v1.x.x
 #
 # USAGE EXAMPLE
 # =============
@@ -17,6 +26,7 @@
 #         tag: "v1.2.3"
 #         version: "1.2.3"
 #         changelog: "## Changes\n- Feature A\n- Bug fix B"
+#         stable-branch-pattern: "^refs/heads/(main|release/v[0-9]+)$"
 
 name: Create Release
 
@@ -32,6 +42,11 @@ on:
       changelog:
         required: true
         type: string
+      stable-branch-pattern:
+        description: "Regex pattern for branches that create stable (non-prerelease) releases"
+        required: false
+        type: string
+        default: "^refs/heads/main$"
 
 jobs:
   create-release:
@@ -41,7 +56,9 @@ jobs:
       - name: Determine if this is a pre-release
         id: determine-prerelease
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          REF="${{ github.ref }}"
+          PATTERN="${{ inputs.stable-branch-pattern }}"
+          if [[ "$REF" =~ $PATTERN ]]; then
             echo "prerelease=false" >> $GITHUB_ENV
           else
             echo "prerelease=true" >> $GITHUB_ENV
@@ -54,3 +71,25 @@ jobs:
           name: Release ${{ inputs.version }}
           body: ${{ inputs.changelog }}
           prerelease: ${{ env.prerelease }}
+
+      - name: Checkout for tag operations
+        if: env.prerelease == 'false'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Update floating major version tag
+        if: env.prerelease == 'false'
+        run: |
+          # Extract major version from tag (v1.2.3 → v1)
+          MAJOR_TAG=$(echo "${{ inputs.tag }}" | sed -E 's/^(v[0-9]+).*/\1/')
+
+          echo "Updating floating tag $MAJOR_TAG to point to ${{ inputs.tag }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Force update the major version tag
+          git tag -fa "$MAJOR_TAG" "${{ inputs.tag }}" -m "Release $MAJOR_TAG → ${{ inputs.tag }}"
+          git push -f origin "$MAJOR_TAG"

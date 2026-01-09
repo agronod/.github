@@ -76,7 +76,37 @@ with:
   changelog: ${{ needs.next-version.outputs.changelog }}
 ```
 
-Releases on `main` branch are marked as stable; other branches create pre-releases.
+Releases on `main` and `release/v*` branches are marked as stable; other branches create pre-releases.
+
+## Floating Major Version Tags
+
+GitHub does NOT automatically resolve `@v1` to latest `v1.x.x`. We maintain floating tags:
+
+```
+v1 (floating) ────────────────► points to v1.3.2
+                                │
+v1.0.0 ── v1.1.0 ── v1.2.0 ── v1.3.2
+```
+
+Users reference `@v1` to get automatic patch/minor updates. The floating tag is updated automatically when a new release is created.
+
+## Release Branch Strategy
+
+```
+main ──────────────────────────────────► (v2.x development)
+         │
+         └── release/v1 ───────────────► (v1.x maintenance)
+```
+
+**Branch lifecycle:**
+1. All development happens on `main` (current major)
+2. When `v2.0.0` releases, `release/v1` branch is auto-created from latest `v1.x.x`
+3. Hotfixes for v1 are committed to `release/v1` → triggers release pipeline
+4. Both `v1.x.y` tag and floating `v1` tag are updated
+
+**Creating release branches:**
+- **Automatic:** Created when a new major version (X.0.0) is released
+- **Manual:** Create branch from tag if needed before major bump
 
 ## Rules
 
@@ -88,5 +118,5 @@ Releases on `main` branch are marked as stable; other branches create pre-releas
 
 ## References
 
-- Key files: `.github/workflows/next-version.yaml`, `.github/workflows/create-release.yml`
+- Key files: `.github/workflows/next-version.yaml`, `.github/workflows/create-release.yml`, `.github/workflows/release.yml`
 - Related contexts: `../../workflows/ci-pipelines/context.md`

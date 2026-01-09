@@ -6,7 +6,9 @@
 #
 # TRIGGER
 # =======
-# Runs automatically on push to main branch.
+# Runs automatically on push to:
+# - main branch (primary development)
+# - release/v* branches (maintenance releases for previous major versions)
 #
 # VERSION BUMPING
 # ===============
@@ -16,15 +18,27 @@
 # - BREAKING CHANGE: → major version bump
 # - docs:, chore:, etc. → no release created
 #
+# RELEASE BRANCH STRATEGY
+# =======================
+# - main: Current major version development (e.g., v2.x)
+# - release/v1: Maintenance branch for v1.x hotfixes
+# - release/v2: Created automatically when v3.0.0 is released
+#
+# Release branches are auto-created when a new major version is released.
+# To create manually: git checkout -b release/v1 v1.x.x && git push origin release/v1
+#
 # JOB CHAIN
 # =========
 # next-version → create-release → update-changelog
+#             ↘ create-maintenance-branch (on major bump)
 
 name: Release
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'release/v[0-9]+'
 
 permissions:
   contents: write
@@ -47,6 +61,7 @@ jobs:
       tag: ${{ needs.next-version.outputs.tag }}
       version: ${{ needs.next-version.outputs.version }}
       changelog: ${{ needs.next-version.outputs.changelog }}
+      stable-branch-pattern: "^refs/heads/(main|release/v[0-9]+)$"
 
   update-changelog:
     name: Update Changelog
@@ -58,3 +73,57 @@ jobs:
       changelog: ${{ needs.next-version.outputs.changelog }}
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  create-maintenance-branch:
+    name: Create Maintenance Branch
+    needs: [next-version, create-release]
+    runs-on: ubuntu-latest
+    # Only on main branch, only for major version bumps (X.0.0)
+    if: |
+      github.ref == 'refs/heads/main' &&
+      needs.next-version.outputs.version != '' &&
+      endsWith(needs.next-version.outputs.version, '.0.0')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Create maintenance branch for previous major
+        run: |
+          VERSION="${{ needs.next-version.outputs.version }}"
+          # Extract current major version (e.g., 2.0.0 → 2)
+          CURRENT_MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          PREV_MAJOR=$((CURRENT_MAJOR - 1))
+
+          # Skip if this is v1.0.0 (no v0 to maintain)
+          if [ "$PREV_MAJOR" -lt 1 ]; then
+            echo "No previous major version to create branch for"
+            exit 0
+          fi
+
+          BRANCH_NAME="release/v${PREV_MAJOR}"
+
+          # Check if branch already exists
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" > /dev/null 2>&1; then
+            echo "Branch $BRANCH_NAME already exists, skipping"
+            exit 0
+          fi
+
+          # Find the latest tag for the previous major version
+          LATEST_TAG=$(git tag -l "v${PREV_MAJOR}.*" --sort=-v:refname | head -n1)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No tags found for v${PREV_MAJOR}.x, skipping"
+            exit 0
+          fi
+
+          echo "Creating $BRANCH_NAME from $LATEST_TAG"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH_NAME" "$LATEST_TAG"
+          git push origin "$BRANCH_NAME"
+
+          echo "Created maintenance branch $BRANCH_NAME from $LATEST_TAG"
