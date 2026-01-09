@@ -1,0 +1,87 @@
+# npm Pack and Publish
+#
+# Atomic workflow for building and publishing npm packages to GitHub Packages.
+# Designed for library projects that publish npm packages rather than
+# container images.
+#
+# PACKAGE VERSIONING
+# ==================
+# Version is set via `npm version` before publishing.
+# For stable releases, use semantic version (e.g., 1.2.3)
+# For pre-releases, use PR-specific version (e.g., 1.2.3-42-abc1234)
+#
+# REGISTRY
+# ========
+# Publishes to GitHub Packages npm registry:
+# https://npm.pkg.github.com
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     publish:
+#       uses: <org>/.github/.github/workflows/npm-pack-publish.yml@main
+#       with:
+#         node-version: "20.15.0"
+#         package-version: "1.2.3"
+#       secrets:
+#         github-token: ${{ secrets.GH_TOKEN }}
+
+name: Pack and Publish npm
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version"
+        required: true
+        type: string
+      working-directory:
+        description: "Path to the directory containing the npm project"
+        default: "."
+        type: string
+      package-version:
+        description: "Semantic version for the npm package"
+        required: true
+        type: string
+      build-command:
+        description: "Build command to run before publishing"
+        default: "npm run build"
+        type: string
+    secrets:
+      github-token:
+        description: "GitHub token for npm registry authentication and publishing"
+        required: true
+
+jobs:
+  pack-and-publish:
+    name: Pack and Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          registry-url: "https://npm.pkg.github.com"
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.github-token }}
+
+      - name: Build
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.build-command }}
+
+      - name: Set package version
+        working-directory: ${{ inputs.working-directory }}
+        run: npm version ${{ inputs.package-version }} --no-git-tag-version --allow-same-version
+
+      - name: Publish to GitHub Packages
+        working-directory: ${{ inputs.working-directory }}
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.github-token }}

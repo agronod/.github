@@ -1,0 +1,73 @@
+# npm Package PR Comment
+#
+# Atomic workflow for posting a comment on a pull request with npm package
+# installation instructions. Provides developers with easy copy-paste commands
+# to test prerelease packages.
+#
+# COMMENT FORMAT
+# ==============
+# Posts formatted comment with:
+# - npm install command
+# - package.json dependency entry
+# - Prerelease warning
+#
+# USAGE EXAMPLE
+# =============
+#   jobs:
+#     comment:
+#       uses: <org>/.github/.github/workflows/comment-npm-package.yml@main
+#       with:
+#         package-name: "@agronod/nestjs-modules"
+#         package-version: "1.2.3-42-abc1234"
+#       secrets:
+#         github-token: ${{ secrets.GITHUB_TOKEN }}
+
+name: Comment npm Package
+
+on:
+  workflow_call:
+    inputs:
+      package-name:
+        description: "npm package name (e.g., @agronod/nestjs-modules)"
+        required: true
+        type: string
+      package-version:
+        description: "Published package version"
+        required: true
+        type: string
+    secrets:
+      github-token:
+        description: "GitHub token for creating PR comment"
+        required: true
+
+jobs:
+  comment:
+    name: Post PR Comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.github-token }}
+          script: |
+            const packageName = '${{ inputs.package-name }}';
+            const version = '${{ inputs.package-version }}';
+            const body = `## Prerelease package published
+
+            \`\`\`bash
+            npm install ${packageName}@${version}
+            \`\`\`
+
+            Or add to package.json:
+            \`\`\`json
+            "${packageName}": "${version}"
+            \`\`\`
+
+            > This is a prerelease version for testing. Do not use in production.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

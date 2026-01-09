@@ -1,0 +1,110 @@
+# Node.js npm Package CI/CD Pipeline
+#
+# Complete CI/CD workflow for Node.js libraries that publish npm packages.
+# Orchestrates testing, versioning, package building, publishing to GitHub
+# Packages, GitHub release creation, and changelog updates.
+#
+# PIPELINE STAGES
+# ===============
+# 1. test         - Run npm test (optional)
+# 2. next-version - Calculate semantic version from conventional commits
+# 3. pack         - Build and publish npm package to GitHub Packages
+# 4. release      - Create GitHub release with changelog
+# 5. changelog    - Update CHANGELOG.md with release notes
+#
+# PACKAGE VERSIONING
+# ==================
+# Uses semantic versioning based on conventional commits:
+# - feat: → minor version bump
+# - fix:  → patch version bump
+# - BREAKING CHANGE: → major version bump
+#
+# USAGE EXAMPLE
+# =============
+#   name: CI
+#   on:
+#     push:
+#       branches: [main]
+#
+#   jobs:
+#     ci:
+#       uses: <org>/.github/.github/workflows/node-packages-ci.yml@main
+#       with:
+#         node-version: "20.15.0"
+#         package-name: "@agronod/nestjs-modules"
+#       secrets:
+#         github-token: ${{ secrets.GH_TOKEN }}
+
+name: Node Package CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version"
+        required: true
+        type: string
+      working-directory:
+        description: "Path to the directory containing the npm project"
+        default: "."
+        type: string
+      package-name:
+        description: "npm package name (e.g., @agronod/nestjs-modules)"
+        required: true
+        type: string
+      test:
+        description: "Run tests"
+        default: true
+        type: boolean
+      build-command:
+        description: "Build command to run before publishing"
+        default: "npm run build"
+        type: string
+    secrets:
+      github-token:
+        description: "GitHub token for builds, publishing, and releases"
+        required: true
+
+jobs:
+  test:
+    uses: ./.github/workflows/node-test.yml
+    with:
+      node-version: ${{ inputs.node-version }}
+      working-directory: ${{ inputs.working-directory }}
+      enabled: ${{ inputs.test }}
+    secrets:
+      github-token: ${{ secrets.github-token }}
+
+  next-version:
+    needs: "test"
+    uses: ./.github/workflows/next-version.yaml
+    secrets:
+      github-token: ${{ secrets.github-token }}
+
+  pack-and-publish:
+    needs: "next-version"
+    uses: ./.github/workflows/npm-pack-publish.yml
+    with:
+      node-version: ${{ inputs.node-version }}
+      working-directory: ${{ inputs.working-directory }}
+      package-version: ${{ needs.next-version.outputs.version }}
+      build-command: ${{ inputs.build-command }}
+    secrets:
+      github-token: ${{ secrets.github-token }}
+
+  create-release:
+    needs: ["pack-and-publish", "next-version"]
+    uses: ./.github/workflows/create-release.yml
+    with:
+      tag: ${{ needs.next-version.outputs.tag }}
+      version: ${{ needs.next-version.outputs.version }}
+      changelog: ${{ needs.next-version.outputs.changelog }}
+
+  update-changelog:
+    needs: ["create-release", "next-version"]
+    uses: ./.github/workflows/update-changelog.yml
+    with:
+      version: ${{ needs.next-version.outputs.version }}
+      changelog: ${{ needs.next-version.outputs.changelog }}
+    secrets:
+      github-token: ${{ secrets.github-token }}

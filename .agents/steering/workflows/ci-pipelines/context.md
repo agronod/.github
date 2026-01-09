@@ -19,6 +19,7 @@ flowchart LR
 | Language | CI Workflow | Test Workflow | Default Version |
 |----------|-------------|---------------|-----------------|
 | Node.js | `node-ci.yml` | `node-test.yml` | 20.15.0 |
+| Node.js (npm) | `node-packages-ci.yml` | `node-test.yml` | **required** |
 | Python | `python-ci.yml` | `python-test.yml` | 3.10 |
 | .NET | `dotnet-ci.yml` | `dotnet-test.yml` | **required** |
 | .NET (NuGet) | `dotnet-packages-ci.yml` | `dotnet-test.yml` | **required** |
