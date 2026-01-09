@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-09
+
+## [1.2.0](https://github.com/agronod/.github/compare/v1.1.0...v1.2.0) (2026-01-09)
+
+
+### Features
+
+* add floating major version tags and release branch support ([027b65e](https://github.com/agronod/.github/commit/027b65e3f1cae0b9f7f4c28b70bad2285cbdf108))
+
+
+### Documentation
+
+* add CONTRIBUTING.md and clean up README ([d307a4e](https://github.com/agronod/.github/commit/d307a4e6509d2ec0723aba2ed1e496fc333cd783))
+* update CHANGELOG.md for v1.1.0 ([6e1b096](https://github.com/agronod/.github/commit/6e1b096025a4ab50bb2b0cbca5ba855f44903ec9))
+
+
+
+
 ## [1.1.0] - 2026-01-09
 
 ## [1.1.0](https://github.com/agronod/.github/compare/v1.0.0...v1.1.0) (2026-01-09)
