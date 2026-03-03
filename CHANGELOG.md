@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-03-03
+
+### [1.2.2](https://github.com/agronod/.github/compare/v1.2.1...v1.2.2) (2026-03-03)
+
+
+### Continuous Integration
+
+* upgrade trivy-action from 0.28.0 to 0.34.2 ([#26](https://github.com/agronod/.github/issues/26)) ([76f5d7f](https://github.com/agronod/.github/commit/76f5d7f7ba51f5bfa59ca37e0a67ff9b8c0b887c))
+
+
+### Documentation
+
+* update CHANGELOG.md for v1.2.1 ([d93c888](https://github.com/agronod/.github/commit/d93c88832ce2186e3d273062b2bf542a24cab394))
+
+
+
+
 ## [1.2.1] - 2026-01-09
 
 ### [1.2.1](https://github.com/agronod/.github/compare/v1.2.0...v1.2.1) (2026-01-09)
