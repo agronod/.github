@@ -23,7 +23,7 @@ Trivy scans for `CRITICAL` and `HIGH` severity vulnerabilities:
 
 ```yaml
 - name: Run Trivy vulnerability scanner
-  uses: aquasecurity/trivy-action@0.28.0
+  uses: aquasecurity/trivy-action@0.34.2
   with:
     image-ref: '${{ inputs.image }}'
     format: 'table'
