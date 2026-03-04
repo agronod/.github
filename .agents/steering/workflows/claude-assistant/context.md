@@ -5,7 +5,7 @@ Keywords: claude, ai, assistant, review, pr-review, mention, interactive, anthro
 
 Two workflow modes for AI-assisted development:
 1. **Interactive**: Responds to @claude mentions in issues, PRs, and comments
-2. **Automatic PR Review**: Reviews all pull requests with inline suggestions
+2. **Automatic PR Review**: Reviews all pull requests with inline comments
 
 ## Workflow Files
 
@@ -52,14 +52,15 @@ claude-pr-review:
 
 ### Review Output Format
 
-**Inline comments** with GitHub suggestions:
+**Inline comments** with code blocks showing suggested fixes:
 ```markdown
 **[TYPE]** Brief issue title
 
 Why it matters.
 
-```suggestion
-replacement code
+**Suggested fix:**
+```ts
+corrected code
 ```
 ```
 
@@ -97,9 +98,31 @@ on:
 jobs:
   claude:
     uses: <org>/.github/.github/workflows/claude-assistant-ci.yml@main
+    with:
+      outdated_comment_action: 'delete'  # Optional: resolve, minimize, delete, none
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
+
+## Configuration Options
+
+| Input | Type | Default | Description |
+|-------|------|---------|-------------|
+| `track_progress` | boolean | `false` | Show verbose progress tracking with todo checkboxes |
+| `outdated_comment_action` | string | `delete` | Action for outdated inline comments |
+
+### Outdated Comment Actions
+
+Controls how inline review comments are handled when the underlying code changes:
+
+| Value | Behavior |
+|-------|----------|
+| `delete` | Permanently remove outdated comments (default) |
+| `resolve` | Mark review threads as resolved |
+| `minimize` | Collapse with "outdated" badge |
+| `none` | Skip all comment handling |
+
+Only inline comments where `isOutdated=true` (code changed) are affected. Comments on unchanged code remain visible. PR summary comments are always minimized.
 
 ## Rules
 
