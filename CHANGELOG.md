@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2026-03-23
+
+### [1.2.3](https://github.com/agronod/.github/compare/v1.2.2...v1.2.3) (2026-03-23)
+
+
+### Features
+
+* Update trivy ([#27](https://github.com/agronod/.github/issues/27)) ([8a2e07b](https://github.com/agronod/.github/commit/8a2e07bc311a869d0a424f270d6d034558024fd3))
+
+
+### Documentation
+
+* update CHANGELOG.md for v1.2.2 ([c22759a](https://github.com/agronod/.github/commit/c22759a66c2ea010c9fb5325252fe51a66763801))
+
+
+
+
 ## [1.2.2] - 2026-03-03
 
 ### [1.2.2](https://github.com/agronod/.github/compare/v1.2.1...v1.2.2) (2026-03-03)
