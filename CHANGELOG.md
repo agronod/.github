@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-03-24
+
+### [1.2.4](https://github.com/agronod/.github/compare/v1.2.3...v1.2.4) (2026-03-24)
+
+
+### Continuous Integration
+
+* disable trivy image scanning by default ([#28](https://github.com/agronod/.github/issues/28)) ([7429c08](https://github.com/agronod/.github/commit/7429c0861ba5b8d410d2d106f51b9a7b9ba1b1f5))
+
+
+### Documentation
+
+* update CHANGELOG.md for v1.2.3 ([4333bd5](https://github.com/agronod/.github/commit/4333bd511d62c8acb6fecef102f7b6c3a0c29c0b))
+
+
+
+
 ## [1.2.3] - 2026-03-23
 
 ### [1.2.3](https://github.com/agronod/.github/compare/v1.2.2...v1.2.3) (2026-03-23)
