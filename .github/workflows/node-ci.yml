@@ -65,7 +65,7 @@ on:
         required: true
         type: string
       check-image:
-        default: true
+        default: false
         type: boolean
       dockerfile:
         description: "The path to the Dockerfile relative to the repository root"

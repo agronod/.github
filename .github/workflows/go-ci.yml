@@ -69,7 +69,7 @@ on:
         required: false
         type: string
       check-image:
-        default: true
+        default: false
         type: boolean
       environment:
         description: "Override environment (e.g., dev, test, staging, production). If not provided, will be calculated from branch."
