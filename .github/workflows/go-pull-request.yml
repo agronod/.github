@@ -46,7 +46,7 @@ on:
         default: true
         type: boolean
       check-image:
-        default: true
+        default: false
         type: boolean
       enforce-scanning:
         default: false
