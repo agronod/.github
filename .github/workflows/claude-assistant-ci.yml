@@ -95,7 +95,11 @@ jobs:
 
   # Automatic PR review with progress tracking
   claude-pr-review:
+    # Disabled 2026-09-28: every run fails with is_error:true before any tokens
+    # are billed (see agronod/agrosphere-api run 36423271108). Drop the
+    # `false &&` once the cause is fixed.
     if: |
+      false &&
       github.event_name == 'pull_request' &&
       github.actor != 'claude[bot]' &&
       github.actor != 'github-actions[bot]'
