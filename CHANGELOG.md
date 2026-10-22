@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.6] - 2026-10-22
+
+### [1.2.6](https://github.com/agronod/.github/compare/v1.2.5...v1.2.6) (2026-10-22)
+
+
+### Bug Fixes
+
+* Aöways pull image to fix security ([4349825](https://github.com/agronod/.github/commit/43498254a2985604e52f8b44ce9553dfd1b11f86))
+
+
+### Documentation
+
+* update CHANGELOG.md for v1.2.5 ([51edb8e](https://github.com/agronod/.github/commit/51edb8e46112a4e5c41c90d059f6adf0158eeab3))
+
+
+
+
 ## [1.2.5] - 2026-09-28
 
 ### [1.2.5](https://github.com/agronod/.github/compare/v1.2.4...v1.2.5) (2026-09-28)
