@@ -132,6 +132,9 @@ jobs:
           tags: ${{ steps.set-image.outputs.image }}
           file: ${{ inputs.dockerfile }}
           build-args: ${{ steps.export-build-args.outputs.buildArgs }}
+          # Always resolve floating base tags (node:22-slim etc.) against the registry
+          # so security rebuilds of the base image are picked up despite the layer cache.
+          pull: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

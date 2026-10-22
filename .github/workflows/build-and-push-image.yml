@@ -131,6 +131,9 @@ jobs:
           file: ${{ inputs.working-directory != '.' && format('{0}/{1}', inputs.working-directory, inputs.dockerfile) || inputs.dockerfile }}
           build-args: ${{ steps.export-build-args.outputs.buildArgs }}
           secrets: ${{ secrets.container-secrets }}
+          # Always resolve floating base tags (node:22-slim etc.) against the registry
+          # so security rebuilds of the base image are picked up despite the layer cache.
+          pull: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
