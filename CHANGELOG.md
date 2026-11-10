@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.7] - 2026-11-10
+
+### [1.2.7](https://github.com/agronod/.github/compare/v1.2.6...v1.2.7) (2026-11-10)
+
+
+### Bug Fixes
+
+* **dotnet-test:** test the Release build instead of rebuilding in Debug ([#30](https://github.com/agronod/.github/issues/30)) ([283cb47](https://github.com/agronod/.github/commit/283cb4713269b9dcc0d94851a1f7affa3bcca181))
+
+
+### Documentation
+
+* update CHANGELOG.md for v1.2.6 ([0e64b11](https://github.com/agronod/.github/commit/0e64b11f164d71047cfda8dcc7c1aa77039e8389))
+
+
+
+
 ## [1.2.6] - 2026-10-22
 
 ### [1.2.6](https://github.com/agronod/.github/compare/v1.2.5...v1.2.6) (2026-10-22)
