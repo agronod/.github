@@ -78,4 +78,4 @@ jobs:
       - name: Test
         if: ${{ inputs.enabled }}
         working-directory: ${{ inputs.working-directory }}
-        run: dotnet test --no-restore --verbosity normal --filter ${{ inputs.test-filter }}
+        run: dotnet test --configuration Release --no-build --verbosity normal --filter ${{ inputs.test-filter }}
